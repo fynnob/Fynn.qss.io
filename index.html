@@ -1,81 +1,425 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth snap-y snap-proximity scroll-pt-28">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Under Construction</title>
     
-    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
+    <!-- --- SEO OPTIMIZATION START --- -->
+    <title>Fynn | class=""Portfolio</title>
+    <meta name="description" content="Hi, I'm Fynn. A 13-year-old web developer and tech enthusiast from Germany. Explore my projects in HTML, CSS, Python, and web design.">
+    <meta name="keywords" content="Fynn, Portfolio, Web Developer, Student, HTML, CSS, Python, JavaScript, Gamer, Tech, Germany">
+    <meta name="author" content="Fynn">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fynn.qzz.io/">
+
+    <!-- Open Graph / Facebook / Discord (Makes links look cool when shared) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fynn.qzz.io/">
+    <meta property="og:title" content="Fynn | Portfolio">
+    <meta property="og:description" content="Check out my projects and stack. I'm building cool stuff on the web.">
+    <meta property="og:image" content="https://fynn.qzz.io/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://fynn.qzz.io/">
+    <meta property="twitter:title" content="Fynn | Portfolio">
+    <meta property="twitter:description" content="Check out my projects and stack. I'm building cool stuff on the web.">
+    <meta property="twitter:image" content="https://fynn.qzz.io/og-image.jpg">
+    <!-- --- SEO OPTIMIZATION END --- -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Space Grotesk for headings, Inter for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: '#8b5cf6', // Violet-500
+                        accentHover: '#7c3aed', // Violet-600
+                        dark: '#0f0f11',
+                        card: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'cursor': 'cursor .75s step-end infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        cursor: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        /* General Page Styling */
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #0f0f11; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; border: 2px solid #0f0f11; }
+        ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+        html { scrollbar-width: thin; scrollbar-color: #8b5cf6 #0f0f11; }
+
+        /* --- UTILITIES --- */
         body {
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #f8f9fa;
-            color: #333333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: #0f0f11;
+            color: white;
+            overflow-x: hidden;
         }
 
-        /* Container for content */
-        .container {
-            text-align: center;
-            padding: 20px;
-            width: 100%;
-            max-width: 800px; /* Increased container width to fit the larger animation */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* This forces the Lottie file to center */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
-        /* Lottie Animation Styling */
-        dotlottie-wc {
-            margin-top: -500px;
-            /* 1. Make it big */
-            width: 1000px !important;
-            height: 1000px !important;
-            
-            /* 2. Make it responsive (shrink on small screens) */
-            max-width: 99%;
-            max-height: 80vh; /* Don't take up more than 60% of vertical screen height */
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.2);
         }
 
-        /* Typography */
-        h1 {
-            font-size: 2rem;
-            margin-top: -100px;
-            margin-bottom: 15px;
-            color: #2c3e50;
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, visibility;
+        }
+        
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
         }
 
-        p {
-            font-size: 1.25rem;
-            color: #666;
-            margin-top: 0;
-        }
-
-        /* Mobile Adjustments */
-        @media (max-width: 650px) {
-            h1 { font-size: 2rem; }
-            p { font-size: 1rem; }
+        /* Glowing background blobs */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            transition: transform 0.1s linear; 
         }
     </style>
 </head>
-<body>
+<body class="antialiased selection:bg-accent selection:text-white">
 
-    <div class="container">
-        <dotlottie-wc 
-            src="https://lottie.host/30a012fc-2f4a-4265-9355-863e3f4102ae/yeUU4oHJBq.lottie" 
-            autoplay 
-            loop>
-        </dotlottie-wc>
+    <!-- Background Blobs (Classes for JS targeting) -->
+    <div class="bg-blob blob-1 bg-purple-600 w-96 h-96 top-0 left-[-100px]"></div>
+    <div class="bg-blob blob-2 bg-blue-600 w-96 h-96 bottom-0 right-[-100px]"></div>
 
-        <h1>Under Construction</h1>
-    </div>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 px-6 py-6 flex justify-between items-center backdrop-blur-sm">
+        <div class="text-xl font-display font-bold tracking-tight">
+            Fynn<span class="text-accent">.qzz.io</span>
+        </div>
+        <div class="flex gap-4">
+            <!-- Home is highlighted here because this is the Home page -->
+            <a href="/" class="text-sm text-white font-bold transition-colors">Home</a>
+            <a href="/Projects" class="text-sm text-gray-400 hover:text-white transition-colors">Projects</a>
+            <a href="/Contact" class="text-sm text-gray-400 hover:text-white transition-colors">Contact</a>
+        </div>
+    </nav>
 
+    <!-- Hero Section -->
+    <header class="min-h-screen flex flex-col justify-center items-center px-6 relative snap-start">
+        <div class="text-center max-w-3xl fade-in-section is-visible">
+            
+            <h1 class="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight">
+                Hi, I'm <span class="text-white relative">
+                    Fynn
+                    <!-- Underline decoration -->
+                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-accent opacity-70" viewBox="0 0 100 10" preserveAspectRatio="none">
+                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="3" fill="none" />
+                    </svg>
+                </span>.
+            </h1>
+            
+            <div class="text-xl md:text-2xl text-gray-400 font-light h-8 mb-8 flex justify-center items-center gap-1">
+                <span>I like</span>
+                <span id="typewriter" class="text-white font-semibold"></span>
+                <span class="w-0.5 h-6 bg-accent animate-cursor"></span>
+            </div>
+
+            <div class="flex gap-4 justify-center mt-8">
+                <a href="#timeline" class="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all transform hover:scale-105">
+                    Projects
+                </a>
+                <a href="#contact" class="px-8 py-3 bg-transparent border border-white/20 text-white font-bold rounded-full hover:bg-white/10 transition-all backdrop-blur-md">
+                    Contact
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator (Hidden by default, shown via JS) -->
+        <div id="scroll-indicator" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce opacity-0 transition-opacity duration-1000">
+            <i data-lucide="arrow-down" class="w-6 h-6"></i>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-6 pb-24">
+
+        <!-- About Section -->
+        <section id="about" class="py-20 fade-in-section snap-start">
+            <h2 class="text-3xl font-display font-bold mb-8 flex items-center gap-3">
+                <i data-lucide="user" class="text-accent w-6 h-6"></i> About Me
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-2xl">
+                    <p class="text-gray-300 leading-relaxed mb-4">
+                        I'm 13 years old and currently exploring the world of programming.
+                    </p>
+                    <p class="text-gray-300 leading-relaxed">
+                        I am learning to make full stack projects using Firebase.
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Location -->
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-center items-center text-center">
+                        <i data-lucide="map-pin" class="text-accent mb-2 w-5 h-5"></i>
+                        <span class="text-sm text-gray-400">Location</span>
+                        <span class="font-bold">Germany</span>
+                    </div>
+                    <!-- Libraries -->
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-center items-center text-center">
+                        <i data-lucide="layers" class="text-accent mb-2 w-5 h-5"></i>
+                        <span class="text-sm text-gray-400">Stack</span>
+                        <span class="font-bold text-xs md:text-sm">HTML, CSS, JS, Firebase</span>
+                    </div>
+                    <!-- Learning -->
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-center items-center text-center col-span-2">
+                        <i data-lucide="cpu" class="text-accent mb-2 w-5 h-5"></i>
+                        <span class="text-sm text-gray-400">Learning</span>
+                        <span class="font-bold">Python</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline / Projects Section -->
+        <section id="timeline" class="py-20 fade-in-section snap-start">
+            <h2 class="text-3xl font-display font-bold mb-16 flex items-center justify-center gap-3">
+                <i data-lucide="git-branch" class="text-accent w-6 h-6"></i> Project Timeline
+            </h2>
+            
+            <!-- Timeline Container -->
+            <div class="relative">
+                <!-- Center Line (Desktop) / Left Line (Mobile) -->
+                <div class="absolute h-full border-l-2 border-white/10 left-4 md:left-1/2 md:-ml-0.5 top-0 bottom-0"></div>
+
+                <!-- ITEM 1 (Current) - RIGHT -->
+                <div class="relative w-full flex items-center justify-between mb-12 md:mb-24">
+                    <div class="hidden md:block w-5/12"></div>
+                    <div class="absolute left-4 md:left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-accent border-4 border-[#0f0f11] shadow-[0_0_15px_rgba(139,92,246,0.6)] z-10"></div>
+                    
+                    <div class="w-full md:w-5/12 pl-12 md:pl-12">
+                        <div class="mb-2 flex items-center gap-3">
+                            <span class="text-xs font-mono text-accent bg-accent/10 px-2 py-1 rounded">2026</span>
+                            <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">Current</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl hover:border-accent/50 group relative">
+                            <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-[#1a1a1c] border-l border-b border-white/10 transform rotate-45"></div>
+                            
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-accent transition-colors">Chirpss.github.io</h3>
+                            <p class="text-gray-400 text-sm mb-4">
+                                A social in person gaming website. Focused on social media games like: Imposter, They're a 10 But and more.
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="text-xs bg-white/5 border border-white/10 px-2 py-1 rounded text-gray-300">Web</span>
+                                <span class="text-xs bg-white/5 border border-white/10 px-2 py-1 rounded text-gray-300">Design</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEM 2 (Past) - LEFT -->
+                <div class="relative w-full flex items-center justify-between mb-12 md:mb-24 md:flex-row-reverse">
+                    <div class="hidden md:block w-5/12"></div>
+                    <div class="absolute left-4 md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-gray-600 border-2 border-[#0f0f11] z-10"></div>
+                    
+                    <div class="w-full md:w-5/12 pl-12 md:pl-0 md:pr-12 md:text-right">
+                        <div class="mb-2 md:flex md:justify-end">
+                            <span class="text-xs font-mono text-gray-400 bg-white/5 px-2 py-1 rounded">2026</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl hover:border-white/30 group relative">
+                            <div class="hidden md:block absolute top-6 -right-2 w-4 h-4 bg-[#1a1a1c] border-r border-t border-white/10 transform rotate-45"></div>
+                            
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-white transition-colors">Fynn.qzz.io</h3>
+                            <p class="text-gray-400 text-sm mb-4">
+                                Building my own personal homepage using HTML, Tailwind CSS, and JS.
+                            </p>
+                            <div class="flex gap-2 md:justify-end">
+                                <span class="text-xs bg-white/5 border border-white/10 px-2 py-1 rounded text-gray-300">Web</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEM 3 (Start) - RIGHT -->
+                <div class="relative w-full flex items-center justify-between mb-12 md:mb-24">
+                    <div class="hidden md:block w-5/12"></div>
+                    <div class="absolute left-4 md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-gray-600 border-2 border-[#0f0f11] z-10"></div>
+                    
+                    <div class="w-full md:w-5/12 pl-12 md:pl-12">
+                        <div class="mb-2">
+                            <span class="text-xs font-mono text-gray-400 bg-white/5 px-2 py-1 rounded">2020</span>
+                            <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">First Project</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl hover:border-white/30 group relative">
+                             <div class="hidden md:block absolute top-6 -left-2 w-4 h-4 bg-[#1a1a1c] border-l border-b border-white/10 transform rotate-45"></div>
+
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-white transition-colors">Scratch</h3>
+                            <p class="text-gray-400 text-sm">
+                                Made my first ever Scratch project. Called Klicke die Klick (Meaning "Click the Click") and was a bad recreation of Magic Tiles.
+                            </p>
+                            <div class="flex gap-2 md:justify-end">
+                                <span class="text-xs bg-white/5 border border-white/10 px-2 py-1 rounded text-gray-300">Scratch</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEM 4 (More Projects) - LEFT -->
+                <div class="relative w-full flex items-center justify-between mb-12 md:mb-24 md:flex-row-reverse">
+                    <div class="hidden md:block w-5/12"></div>
+                    <!-- Different Dot for 'More' -->
+                    <div class="absolute left-4 md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#0f0f11] border-2 border-white/30 z-10"></div>
+                    
+                    <div class="w-full md:w-5/12 pl-12 md:pl-0 md:pr-12 md:text-right">
+                        <!-- Dashed Border Card to signify "More" -->
+                        <a href="/Projects" class="glass-card block p-6 rounded-2xl border-2 border-dashed border-white/20 hover:border-accent hover:bg-white/5 group relative cursor-pointer transition-all">
+                            
+                            <h3 class="text-xl font-bold mb-2 text-gray-300 group-hover:text-accent transition-colors flex items-center md:justify-end gap-2">
+                                More Projects <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </h3>
+                            <p class="text-gray-500 text-sm">
+                                Check out more of my projects.
+                            </p>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 fade-in-section snap-start">
+            <div class="glass-card rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-accent/20 blur-[60px] rounded-full"></div>
+                <h2 class="text-3xl md:text-4xl font-display font-bold mb-4 relative z-10">Let's Connect</h2>
+                <p class="text-gray-400 mb-8 max-w-md mx-auto relative z-10">
+                    Want to play a game or work on a project? Hit me up.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+                    <!-- Email Me Button -->
+                    <a href="mailto:contact@fynn.qzz.io" class="flex items-center justify-center gap-2 px-8 py-4 bg-white text-black hover:bg-gray-200 rounded-xl font-bold transition-colors w-full sm:w-auto shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                        Email Me
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 text-gray-500 text-sm">
+        <p>&copy; 2026 Fynn. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // 1. Typewriter Effect
+        const words = ["School", "Coding", "Sushi", "Design", "Python", "Html", "Minecraft"];
+        let i = 0;
+        let timer;
+        function typeWriter() {
+            const heading = document.getElementById("typewriter");
+            const word = words[i];
+            const current = heading.innerHTML;
+            if (current.length < word.length) {
+                heading.innerHTML = word.substring(0, current.length + 1);
+                timer = setTimeout(typeWriter, 150);
+            } else {
+                setTimeout(deleteWriter, 2000);
+            }
+        }
+        function deleteWriter() {
+            const heading = document.getElementById("typewriter");
+            const current = heading.innerHTML;
+            if (current.length > 0) {
+                heading.innerHTML = current.substring(0, current.length - 1);
+                timer = setTimeout(deleteWriter, 100);
+            } else {
+                i = (i + 1) % words.length;
+                typeWriter();
+            }
+        }
+        window.onload = function() { typeWriter(); };
+
+
+        // 2. Scroll Animation (Fade In)
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('is-visible');
+            });
+        }, observerOptions);
+        document.querySelectorAll('.fade-in-section').forEach((section) => observer.observe(section));
+
+        // 3. Smart Scroll Indicator
+        const arrow = document.getElementById('scroll-indicator');
+        let arrowTimeout;
+
+        // Show arrow after 5 seconds if still at top
+        arrowTimeout = setTimeout(() => {
+            if(window.scrollY < 50) {
+                arrow.classList.remove('opacity-0');
+            }
+        }, 5000);
+
+        // Hide arrow immediately on scroll
+        window.addEventListener('scroll', () => {
+            if(window.scrollY > 20) {
+                arrow.classList.add('opacity-0');
+                // clear timeout in case they scroll before 5s
+                clearTimeout(arrowTimeout);
+            }
+        });
+
+        // 4. Dynamic Background Scroll Logic
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const blob1 = document.querySelector('.blob-1');
+            const blob2 = document.querySelector('.blob-2');
+            
+            if(blob1) blob1.style.transform = `translateY(${scrollY * 0.4}px) rotate(${scrollY * 0.05}deg)`; 
+            if(blob2) blob2.style.transform = `translateY(-${scrollY * 0.2}px) translateX(-${scrollY * 0.1}px)`;
+        });
+    </script>
 </body>
 </html>
+
+
