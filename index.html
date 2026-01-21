@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth snap-y snap-proximity scroll-pt-28">
+<html lang="en" class="scroll-smooth snap-y snap-mandatory scroll-pt-0">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- --- SEO OPTIMIZATION START --- -->
-    <title>Fynn | Portfolio</title>
+    <title>Fynn | Web Developer & Student Portfolio</title>
     <meta name="description" content="Hi, I'm Fynn. A 13-year-old web developer and tech enthusiast from Germany. Explore my projects in HTML, CSS, Python, and web design.">
     <meta name="keywords" content="Fynn, Portfolio, Web Developer, Student, HTML, CSS, Python, JavaScript, Gamer, Tech, Germany">
     <meta name="author" content="Fynn">
@@ -120,6 +120,12 @@
             z-index: -1;
             transition: transform 0.1s linear; 
         }
+
+        /* --- SCROLL SNAP STOP UTILITY --- */
+        /* This ensures you can't scroll past multiple sections at once */
+        .snap-always {
+            scroll-snap-stop: always;
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-accent selection:text-white">
@@ -142,7 +148,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <header class="min-h-screen flex flex-col justify-center items-center px-6 relative snap-start">
+    <header class="min-h-screen flex flex-col justify-center items-center px-6 relative snap-start snap-always pt-20">
         <div class="text-center max-w-3xl fade-in-section is-visible">
             
             <h1 class="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight">
@@ -181,7 +187,7 @@
     <main class="max-w-6xl mx-auto px-6 pb-24">
 
         <!-- About Section -->
-        <section id="about" class="py-20 fade-in-section snap-start">
+        <section id="about" class="py-20 min-h-screen flex flex-col justify-center fade-in-section snap-start snap-always">
             <h2 class="text-3xl font-display font-bold mb-8 flex items-center gap-3">
                 <i data-lucide="user" class="text-accent w-6 h-6"></i> About Me
             </h2>
@@ -218,7 +224,7 @@
         </section>
 
         <!-- Timeline / Projects Section -->
-        <section id="timeline" class="py-20 fade-in-section snap-start">
+        <section id="timeline" class="py-20 min-h-screen flex flex-col justify-center fade-in-section snap-start snap-always">
             <h2 class="text-3xl font-display font-bold mb-16 flex items-center justify-center gap-3">
                 <i data-lucide="git-branch" class="text-accent w-6 h-6"></i> Project Timeline
             </h2>
@@ -324,7 +330,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 fade-in-section snap-start">
+        <section id="contact" class="py-20 min-h-screen flex flex-col justify-center fade-in-section snap-start snap-always">
             <div class="glass-card rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-accent/20 blur-[60px] rounded-full"></div>
                 <h2 class="text-3xl md:text-4xl font-display font-bold mb-4 relative z-10">Let's Connect</h2>
@@ -343,7 +349,7 @@
 
     </main>
 
-    <footer class="text-center py-8 text-gray-500 text-sm">
+    <footer class="text-center py-8 text-gray-500 text-sm snap-start">
         <p>&copy; 2026 Fynn. All rights reserved.</p>
     </footer>
 
