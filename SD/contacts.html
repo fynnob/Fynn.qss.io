@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Profile</title>
+  <style>
+    :root {
+      --bg-1: #f3f8f0;
+      --bg-2: #cce2d9;
+      --panel: rgba(255, 255, 255, 0.88);
+      --line: #b8d2c8;
+      --text: #172a26;
+      --muted: #44605a;
+      --accent: #276f67;
+      --accent-soft: #e5f3f0;
+      --warn: #a24532;
+      --shadow: 0 18px 40px rgba(13, 40, 35, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(39, 111, 103, 0.18), transparent 35%),
+        radial-gradient(circle at 90% 90%, rgba(162, 69, 50, 0.12), transparent 40%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+      .backArrow {
+      display: inline-block;
+      text-decoration: none;
+      color: white;
+      background: linear-gradient(120deg, #276f67, #1f8f81);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+      .titleBar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .profileMeta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    .profile {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: rise 450ms ease;
+    }
+
+    .header {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr;
+      align-items: center;
+      background: linear-gradient(135deg, #edf8f5, #f9fdfc);
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid #c9e4dd;
+      object-fit: cover;
+      background: #f1fbf8;
+    }
+
+    .avatarWrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: nowrap;
+    }
+
+    .avatarMini {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #c9e4dd;
+      background: #f1fbf8;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      line-height: 1.15;
+      font-size: clamp(1.5rem, 3vw, 2.4rem);
+      word-break: break-word;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .grid {
+      padding: 18px 24px 26px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #f9fffc;
+    }
+
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+    }
+
+    .value {
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+      .jsonBlock {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #f7fbf9;
+      }
+
+      .jsonBlock summary {
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .jsonBlock pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 10px 0 0;
+        font-size: 0.88rem;
+        color: #20342f;
+      }
+
+      .lockbox,
+      #lockbox {
+        display: none !important;
+      }
+
+    .error,
+    .loading {
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+      font-size: 0.97rem;
+    }
+
+    .loading {
+      background: #eef8f5;
+      border: 1px solid #cde5dd;
+      color: #2b5a52;
+    }
+
+    .error {
+      background: #fff1ef;
+      border: 1px solid #e9c0b8;
+      color: var(--warn);
+      display: none;
+    }
+
+    .imageModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 18, 15, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .imageModal.open {
+      display: flex;
+    }
+
+    .imageModalCard {
+      max-width: min(96vw, 1200px);
+      max-height: 92vh;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid #b8d2c8;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .imageModalBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #d9ebe3;
+      background: #f4fbf8;
+    }
+
+    .imageModalActions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .imageModalBtn {
+      border: 1px solid #a7c6bb;
+      background: #fff;
+      color: #1c4b44;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .imageModalBody {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f221e;
+      min-height: 320px;
+    }
+
+    .imageModalBody img {
+      max-width: 100%;
+      max-height: calc(92vh - 56px);
+      object-fit: contain;
+    }
+
+    .lockbox {
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
+      margin-bottom: 14px;
+      background: #f1faf6;
+      border: 1px solid #c5ddd6;
+      display: grid;
+      gap: 10px;
+    }
+
+    .lockRow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .keyInput {
+      flex: 1;
+      min-width: 240px;
+      border-radius: 10px;
+      border: 1px solid #b8d4cc;
+      padding: 10px;
+    }
+
+    .secondaryBtn {
+      background: #eef8f5;
+      color: #2b5f56;
+      border: 1px solid #b8d4cc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #scanVideo {
+      display: none;
+      width: 240px;
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid #b8d4cc;
+    }
+
+    #qrCanvas {
+      display: none;
+      width: fit-content;
+      border: 1px dashed #b8d4cc;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .header {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .avatar {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+      <div class="titleBar">
+        <a id="backToSearch" class="backArrow" href="SD/index.html" aria-label="Back to search">←</a>
+      </div>
+
+    <div id="loading" class="loading">Loading profile...</div>
+    <div id="errorBox" class="error"></div>
+
+    <section id="profileCard" class="profile" hidden>
+      <div class="header">
+	        <div class="avatarWrap">
+	          <img id="avatar" class="avatar" alt="Profile avatar" loading="lazy">
+	          <img id="iservAvatarImg" class="avatarMini" alt="IServ avatar" loading="lazy">
+	        </div>
+        <div>
+          <h1 id="fullName"></h1>
+          <p id="shortName" class="sub"></p>
+          <p id="profileMeta" class="profileMeta"></p>
+        </div>
+      </div>
+      <div class="grid" id="profileRows"></div>
+    </section>
+  </div>
+
+  <div id="imageModal" class="imageModal" aria-hidden="true">
+    <div class="imageModalCard">
+      <div class="imageModalBar">
+        <strong id="imageModalTitle">Profile Picture</strong>
+        <div class="imageModalActions">
+          <button id="downloadImageBtn" class="imageModalBtn" type="button">Download</button>
+          <button id="closeImageModalBtn" class="imageModalBtn" type="button">Close</button>
+        </div>
+      </div>
+      <div class="imageModalBody">
+        <img id="imageModalImg" alt="Profile picture preview">
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="assets/SD/directory-crypto.js"></script>
+  <script>
+    const DATA_PATHS = ["SD/Data/combined_directory.json.enc", "SD/Data/combined_directory.json"];
+      const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='64' fill='%23d9efe9'/%3E%3Ccircle cx='64' cy='50' r='24' fill='%236ca397'/%3E%3Cpath d='M24 110c4-22 20-36 40-36s36 14 40 36' fill='%236ca397'/%3E%3C/svg%3E";
+
+    const loadingEl = document.getElementById("loading");
+    const errorBox = document.getElementById("errorBox");
+    const profileCard = document.getElementById("profileCard");
+    const avatarEl = document.getElementById("avatar");
+    const iservAvatarImg = document.getElementById("iservAvatarImg");
+    const fullNameEl = document.getElementById("fullName");
+    const shortNameEl = document.getElementById("shortName");
+    const profileMetaEl = document.getElementById("profileMeta");
+    const profileRows = document.getElementById("profileRows");
+      const backToSearch = document.getElementById("backToSearch");
+    const imageModal = document.getElementById("imageModal");
+    const imageModalImg = document.getElementById("imageModalImg");
+    const imageModalTitle = document.getElementById("imageModalTitle");
+    const downloadImageBtn = document.getElementById("downloadImageBtn");
+    const closeImageModalBtn = document.getElementById("closeImageModalBtn");
+
+    let currentProfile = null;
+    let modalImageUrl = "";
+    let modalImageLabel = "Profile";
+
+    function parseAvatarFromHtml(avatarHtml) {
+      if (!avatarHtml || typeof avatarHtml !== "string") return "";
+      const sourceSrcset = avatarHtml.match(/<source[^>]*srcset=\"([^\"]+)\"/i);
+      if (sourceSrcset && sourceSrcset[1]) {
+          const candidates = sourceSrcset[1]
+            .split(",")
+            .map((entry) => entry.trim().split(" "))
+            .map(([url, descriptor]) => ({ url, size: parseInt((descriptor || "").replace(/[^0-9]/g, ""), 10) || 0 }))
+            .filter((item) => item.url);
+          if (candidates.length) {
+            candidates.sort((a, b) => b.size - a.size);
+            return candidates[0].url;
+          }
+      }
+      const srcMatch = avatarHtml.match(/<img[^>]*src=\"([^\"]+)\"/i);
+      return srcMatch ? srcMatch[1] : "";
+    }
+
+      function makeHiResGoogleUrl(url, size) {
+        const raw = String(url || "").trim();
+        if (!raw || !/googleusercontent\.com/i.test(raw)) return raw;
+        return raw.replace(/=s\d+(-p-k-rw-no-mo|-p-k-rw-no|-p|)?/i, `=s${size}$1`).replace(/=s\d+$/i, `=s${size}`);
+      }
+
+      function makeHiResIservUrl(url, size) {
+        const raw = String(url || "").trim();
+        if (!raw) return "";
+        return raw
+          .replace(/([?&]width=)\d+/i, `$1${size}`)
+          .replace(/([?&]height=)\d+/i, `$1${size}`);
+      }
+
+      function extractEmails(raw) {
+        const emails = [];
+        const addFrom = (value) => {
+          const text = String(value || "");
+          const found = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
+          for (const email of found) emails.push(email.toLowerCase());
+        };
+        addFrom(raw.google_email);
+        for (const line of raw.google_raw_lines || []) addFrom(line);
+        for (const item of raw.iserv_results || []) {
+          addFrom(item && item.label);
+          addFrom(item && item.text);
+          addFrom(item && item.value);
+        }
+        return [...new Set(emails)];
+      }
+
+    function parseLabel(label) {
+      const str = typeof label === "string" ? label : "";
+      const match = str.match(/^(.*?)\s*<([^>]+)>$/);
+      if (!match) return { fullName: "", email: "" };
+      return {
+        fullName: match[1].trim(),
+        email: match[2].trim()
+      };
+    }
+
+    function normalizeProfile(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const name = (raw.name || "").trim();
+      if (!name) return null;
+
+      const primaryIserv = Array.isArray(raw.iserv_results)
+        ? raw.iserv_results.find((item) => item && typeof item === "object")
+        : null;
+
+      const parsed = parseLabel(primaryIserv ? primaryIserv.label : "");
+        const iservAvatar = (primaryIserv && primaryIserv.avatar) || parseAvatarFromHtml(primaryIserv && primaryIserv.avatarHtml);
+        const googleAvatar = makeHiResGoogleUrl(raw.google_profile_picture || "", 512);
+      const extra = (primaryIserv && primaryIserv.extra ? String(primaryIserv.extra) : "").trim();
+        const emails = extractEmails(raw);
+        const primaryEmail = raw.google_email || parsed.email || emails[0] || "";
+
+      let role = "Other";
+      if (/teacher/i.test(extra)) role = "Teacher";
+      else if (/student/i.test(extra)) role = "Student";
+
+      let className = "";
+      if (extra.includes(",")) {
+        const maybeClass = extra.split(",")[0].trim();
+        if (maybeClass && !/teacher|student/i.test(maybeClass)) className = maybeClass;
+      } else if (/^[0-9]{1,2}[a-z]$/i.test(extra)) {
+        className = extra;
+      }
+
+      return {
+        id: name.toLowerCase(),
+        name,
+        fullName: parsed.fullName || name,
+          email: primaryEmail,
+        role,
+        className,
+        extra,
+        google: Boolean(raw.Google),
+        iserv: Boolean(raw.Iserv),
+        avatar: googleAvatar || iservAvatar || DEFAULT_AVATAR,
+          googleAvatar: googleAvatar || DEFAULT_AVATAR,
+        iservAvatar: iservAvatar || "",
+          emails,
+        raw
+      };
+    }
+
+    function getParams() {
+      return new URLSearchParams(window.location.search);
+    }
+
+    function buildBackLinks() {
+      const params = getParams();
+      const backParams = new URLSearchParams(params);
+      backParams.delete("profile");
+      backParams.delete("key");
+
+        const backHref = backParams.toString() ? `index.html?${backParams.toString()}` : "index.html";
+        backToSearch.href = backHref;
+    }
+
+    function pickProfile(profiles) {
+      const params = getParams();
+      const profileKey = (params.get("profile") || "").trim().toLowerCase();
+      const q = (params.get("q") || "").trim().toLowerCase();
+
+      if (profileKey) {
+        const direct = profiles.find((p) => p.name.toLowerCase() === profileKey || p.fullName.toLowerCase() === profileKey);
+        if (direct) return direct;
+      }
+
+      if (q) {
+        return profiles.find((p) => {
+          const haystack = [p.name, p.fullName, p.email, p.extra].join(" ").toLowerCase();
+          return haystack.includes(q);
+        }) || null;
+      }
+
+      return null;
+    }
+
+    function rowHtml(label, value) {
+      return `
+        <div class="row">
+          <span class="label">${label}</span>
+          <div class="value">${value || "-"}</div>
+        </div>
+      `;
+    }
+
+      function jsonRow(label, data) {
+        return `
+          <details class="jsonBlock">
+            <summary>${label}</summary>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          </details>
+        `;
+      }
+
+    function renderProfile(profile) {
+      currentProfile = profile;
+        avatarEl.src = profile.avatar;
+      avatarEl.referrerPolicy = "no-referrer";
+      if (profile.iservAvatar) {
+        iservAvatarImg.src = profile.iservAvatar;
+        iservAvatarImg.referrerPolicy = "no-referrer";
+        iservAvatarImg.style.display = "block";
+      } else {
+        iservAvatarImg.style.display = "none";
+      }
+      fullNameEl.textContent = profile.fullName;
+      shortNameEl.textContent = profile.name;
+      profileMetaEl.textContent = profile.google && profile.iserv
+        ? "Google + IServ"
+        : profile.google
+          ? "Google"
+          : profile.iserv
+            ? "IServ"
+            : "Unknown";
+
+      const source = profile.google && profile.iserv
+        ? "Google + IServ"
+        : profile.google
+          ? "Google"
+          : profile.iserv
+            ? "IServ"
+            : "Unknown";
+
+      profileRows.innerHTML = [
+          rowHtml("Emails", (profile.emails && profile.emails.length ? profile.emails.join(" • ") : profile.email || "No email available")),
+        rowHtml("Role", profile.role),
+        rowHtml("Class", profile.className || "Not provided"),
+        rowHtml("Extra", profile.extra || "No extra metadata"),
+        rowHtml("Google Status", profile.google ? "Present" : "Missing"),
+        rowHtml("IServ Status", profile.iserv ? "Present" : "Missing"),
+          rowHtml("IServ Query", profile.raw.iserv_query_url || "Not available"),
+          jsonRow("View Row", profile.raw)
+      ].join("");
+
+        loadingEl.hidden = true;
+        profileCard.hidden = false;
+    }
+
+      function closeImageModal() {
+        imageModal.classList.remove("open");
+        imageModal.setAttribute("aria-hidden", "true");
+      }
+
+      function openImageModal(kind) {
+        if (!currentProfile) return;
+
+        let src = "";
+        if (kind === "iserv") {
+          src = makeHiResIservUrl(currentProfile.iservAvatar || "", 512) || currentProfile.iservAvatar || "";
+          modalImageLabel = "IServ";
+        } else {
+          src = makeHiResGoogleUrl((currentProfile.raw && currentProfile.raw.google_profile_picture) || currentProfile.googleAvatar || "", 512);
+          if (!src) {
+            src = makeHiResIservUrl(currentProfile.iservAvatar || "", 512) || currentProfile.iservAvatar || "";
+          }
+          modalImageLabel = "Google";
+        }
+
+        if (!src) {
+          src = DEFAULT_AVATAR;
+        }
+
+        modalImageUrl = src;
+        imageModalTitle.textContent = `${modalImageLabel} Profile Picture`;
+        imageModalImg.src = src;
+        imageModal.classList.add("open");
+        imageModal.setAttribute("aria-hidden", "false");
+      }
+
+      async function downloadModalImage() {
+        if (!modalImageUrl) return;
+        const fileName = `${(currentProfile && currentProfile.name) || "profile"}-${modalImageLabel.toLowerCase()}-highres.jpg`;
+
+        try {
+          const response = await fetch(modalImageUrl, { mode: "cors" });
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = objectUrl;
+          link.download = fileName;
+          link.click();
+          URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+          const link = document.createElement("a");
+          link.href = modalImageUrl;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.click();
+        }
+      }
+
+    async function init() {
+      buildBackLinks();
+      try {
+          const payload = await DirectoryCrypto.fetchDirectoryData(DATA_PATHS, DirectoryCrypto.getCookieKey() || DirectoryCrypto.upsertKeyFromUrl());
+        const rawPeople = Array.isArray(payload.people) ? payload.people : [];
+        const profiles = rawPeople.map(normalizeProfile).filter(Boolean);
+
+        const selected = pickProfile(profiles);
+        if (!selected) {
+          throw new Error("No profile found. Use ?profile=name or ?q=search-term in URL.");
+        }
+
+          renderProfile(selected);
+      } catch (error) {
+        loadingEl.hidden = false;
+        profileCard.hidden = true;
+        errorBox.style.display = "block";
+        errorBox.textContent = error.message;
+      }
+    }
+
+    avatarEl.addEventListener("click", () => openImageModal("google"));
+    iservAvatarImg.addEventListener("click", () => openImageModal("iserv"));
+    closeImageModalBtn.addEventListener("click", closeImageModal);
+    downloadImageBtn.addEventListener("click", downloadModalImage);
+    imageModal.addEventListener("click", (event) => {
+      if (event.target === imageModal) {
+        closeImageModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeImageModal();
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
