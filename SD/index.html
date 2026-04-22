@@ -307,11 +307,14 @@
 		</section>
 	</div>
 
-	<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-	<script src="assets/directory-crypto.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script>
-		const DATA_PATHS = ["Data/combined_directory.json.enc", "Data/combined_directory.json"];
+		const SUPABASE_URL = "https://zkdfkzuhrstdtelllwot.supabase.co";
+		const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QzQ-jNJNhpbxU5mvuwPhUA_XEHdXhsx";
+		const SUPABASE_TABLE = "maindata";
 		const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='64' fill='%23e6f3dc'/%3E%3Ccircle cx='64' cy='50' r='24' fill='%2390b57a'/%3E%3Cpath d='M24 110c4-22 20-36 40-36s36 14 40 36' fill='%2390b57a'/%3E%3C/svg%3E";
+
+		const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 		const qInput = document.getElementById("q");
 		const typeFilter = document.getElementById("typeFilter");
@@ -328,29 +331,28 @@
 		const settingsMenu = document.createElement("div");
 		settingsMenu.className = "settingsMenu";
 		settingsMenu.innerHTML = `
-			<strong>Directory Key</strong>
+			<strong>Account</strong>
+			<div id="authStatus" class="meta">Checking session...</div>
 			<div class="lockRow">
-				<input id="keyInput" class="keyInput" type="text" placeholder="Paste JFKSKEY:v1:... or raw base64 key">
-				<button id="unlockBtn" type="button">Unlock</button>
+				<input id="emailInput" class="keyInput" type="email" placeholder="Email">
+				<input id="passwordInput" class="keyInput" type="password" placeholder="Password">
 			</div>
 			<div class="lockRow">
-				<button id="scanBtn" class="secondaryBtn" type="button">Scan QR</button>
-				<button id="showQrBtn" class="secondaryBtn" type="button">Show My Key QR</button>
+				<button id="signInBtn" type="button">Sign In</button>
+				<button id="signUpBtn" class="secondaryBtn" type="button">Sign Up</button>
+				<button id="signOutBtn" class="secondaryBtn" type="button">Sign Out</button>
 			</div>
-			<video id="scanVideo" autoplay muted playsinline></video>
-			<div id="qrCanvas"></div>
 		`;
 		document.querySelector(".hero").insertBefore(settingsMenu, errorBox);
 
-		const keyInput = document.getElementById("keyInput");
-		const unlockBtn = document.getElementById("unlockBtn");
-		const scanBtn = document.getElementById("scanBtn");
-		const showQrBtn = document.getElementById("showQrBtn");
-		const scanVideo = document.getElementById("scanVideo");
-		const qrCanvas = document.getElementById("qrCanvas");
+		const authStatus = document.getElementById("authStatus");
+		const emailInput = document.getElementById("emailInput");
+		const passwordInput = document.getElementById("passwordInput");
+		const signInBtn = document.getElementById("signInBtn");
+		const signUpBtn = document.getElementById("signUpBtn");
+		const signOutBtn = document.getElementById("signOutBtn");
 
-		let activeKey = "";
-		let stopScanner = null;
+		let currentSession = null;
 
 		let allProfiles = [];
 		let settingsVisible = false;
@@ -365,53 +367,12 @@
 
 		function extractEmails(raw) {
 			const emails = [];
-			const addFrom = (value) => {
-				const text = String(value || "");
-				const found = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
-				for (const email of found) {
-					emails.push(email.toLowerCase());
+			if (Array.isArray(raw.Email)) {
+				for (const email of raw.Email) {
+					if (email) emails.push(String(email).toLowerCase());
 				}
-			};
-			addFrom(raw.google_email);
-			for (const line of raw.google_raw_lines || []) addFrom(line);
-			for (const item of raw.iserv_results || []) {
-				addFrom(item && item.label);
-				addFrom(item && item.text);
-				addFrom(item && item.value);
 			}
 			return [...new Set(emails)];
-		}
-
-		function parseAvatarFromHtml(avatarHtml) {
-			if (!avatarHtml || typeof avatarHtml !== "string") {
-				return "";
-			}
-			const sourceSrcset = avatarHtml.match(/<source[^>]*srcset=\"([^\"]+)\"/i);
-			if (sourceSrcset && sourceSrcset[1]) {
-				const candidates = sourceSrcset[1]
-					.split(",")
-					.map((entry) => entry.trim().split(" "))
-					.map(([url, descriptor]) => ({ url, size: parseInt((descriptor || "").replace(/[^0-9]/g, ""), 10) || 0 }))
-					.filter((item) => item.url);
-				if (candidates.length) {
-					candidates.sort((a, b) => b.size - a.size);
-					return candidates[0].url;
-				}
-			}
-			const srcMatch = avatarHtml.match(/<img[^>]*src=\"([^\"]+)\"/i);
-			return srcMatch ? srcMatch[1] : "";
-		}
-
-		function parseLabel(label) {
-			const str = typeof label === "string" ? label : "";
-			const match = str.match(/^(.*?)\s*<([^>]+)>$/);
-			if (!match) {
-				return { fullName: "", email: "" };
-			}
-			return {
-				fullName: match[1].trim(),
-				email: match[2].trim()
-			};
 		}
 
 		function normalizeProfile(raw) {
@@ -419,39 +380,20 @@
 				return null;
 			}
 
-			const name = (raw.name || "").trim();
+			const name = (raw.Name || "").trim();
 			if (!name) {
 				return null;
 			}
 
-			const primaryIserv = Array.isArray(raw.iserv_results)
-				? raw.iserv_results.find((item) => item && typeof item === "object")
-				: null;
-
-			const parsed = parseLabel(primaryIserv ? primaryIserv.label : "");
-			const iservAvatar = (primaryIserv && primaryIserv.avatar) || parseAvatarFromHtml(primaryIserv && primaryIserv.avatarHtml);
-			const googleAvatar = makeHiResGoogleUrl(raw.google_profile_picture || "", 128);
-			const extra = (primaryIserv && primaryIserv.extra ? String(primaryIserv.extra) : "").trim();
+			const iservAvatar = String(raw.IservPP || "").trim();
+			const googleAvatar = makeHiResGoogleUrl(raw.GooglePP || "", 128);
+			const extra = String(raw.Type || "").trim();
 			const emails = extractEmails(raw);
-			const email = raw.google_email || parsed.email || emails[0] || "";
-			const fullName = parsed.fullName || name;
+			const email = emails[0] || "";
+			const fullName = name;
 
-			let role = "Other";
-			if (/teacher/i.test(extra)) {
-				role = "Teacher";
-			} else if (/student/i.test(extra)) {
-				role = "Student";
-			}
-
-			let className = "";
-			if (extra.includes(",")) {
-				const maybeClass = extra.split(",")[0].trim();
-				if (maybeClass && !/teacher|student/i.test(maybeClass)) {
-					className = maybeClass;
-				}
-			} else if (/^[0-9]{1,2}[a-z]$/i.test(extra)) {
-				className = extra;
-			}
+			const role = raw.Type === "Student" || raw.Type === "Teacher" ? raw.Type : "Other";
+			const className = String(raw.Class || "").trim();
 
 			return {
 				id: name.toLowerCase(),
@@ -670,17 +612,40 @@
 			}
 		}
 
+		async function fetchAllRows() {
+			const pageSize = 1000;
+			let offset = 0;
+			const rows = [];
+
+			while (true) {
+				const { data, error } = await supabaseClient
+					.from(SUPABASE_TABLE)
+					.select("*")
+					.order("Name", { ascending: true })
+					.range(offset, offset + pageSize - 1);
+
+				if (error) throw error;
+				rows.push(...(data || []));
+				if (!data || data.length < pageSize) break;
+				offset += pageSize;
+			}
+
+			return rows;
+		}
+
 		async function loadData() {
 			try {
 				errorBox.style.display = "none";
-				const payload = await DirectoryCrypto.fetchDirectoryData(DATA_PATHS, activeKey);
-				const rawPeople = Array.isArray(payload.people) ? payload.people : [];
-				allProfiles = rawPeople.map(normalizeProfile).filter(Boolean);
+				if (!currentSession) {
+					throw new Error("Please sign in first. Only authenticated users can read data.");
+				}
+				const rawRows = await fetchAllRows();
+				allProfiles = rawRows.map(normalizeProfile).filter(Boolean);
 				renderResults();
-				statsEl.textContent = `Showing ${Math.min(allProfiles.length, allProfiles.length)} of ${allProfiles.length} profiles`;
+				statsEl.textContent = `Showing ${allProfiles.length} of ${allProfiles.length} profiles`;
 			} catch (error) {
 				statsEl.textContent = "Could not load contacts.";
-				errorBox.textContent = error.message;
+				errorBox.textContent = error.message || "Failed to load data from Supabase.";
 				errorBox.style.display = "block";
 				settingsBtn.style.display = "inline-flex";
 				settingsMenu.classList.add("open");
@@ -689,22 +654,55 @@
 			}
 		}
 
-		function stopActiveScanner() {
-			if (typeof stopScanner === "function") {
-				stopScanner();
-				stopScanner = null;
+		function setAuthUi(session) {
+			if (session && session.user) {
+				authStatus.textContent = `Signed in as ${session.user.email}`;
+			} else {
+				authStatus.textContent = "Not signed in.";
 			}
-			scanVideo.style.display = "none";
 		}
 
-		async function unlockWithKey(keyText) {
+		async function signIn() {
 			try {
-				activeKey = DirectoryCrypto.setCookieKey(keyText);
-				keyInput.value = DirectoryCrypto.formattedKey(activeKey);
-				stopActiveScanner();
+				const { error } = await supabaseClient.auth.signInWithPassword({
+					email: emailInput.value.trim(),
+					password: passwordInput.value
+				});
+				if (error) throw error;
 				await loadData();
 			} catch (error) {
-				errorBox.textContent = error.message;
+				errorBox.textContent = error.message || "Sign in failed.";
+				errorBox.style.display = "block";
+			}
+		}
+
+		async function signUp() {
+			try {
+				const { error } = await supabaseClient.auth.signUp({
+					email: emailInput.value.trim(),
+					password: passwordInput.value
+				});
+				if (error) throw error;
+				errorBox.textContent = "Signup request submitted. If allowlisted, you can sign in now.";
+				errorBox.style.display = "block";
+			} catch (error) {
+				errorBox.textContent = error.message || "Sign up failed.";
+				errorBox.style.display = "block";
+			}
+		}
+
+		async function signOut() {
+			try {
+				await supabaseClient.auth.signOut();
+				currentSession = null;
+				setAuthUi(null);
+				allProfiles = [];
+				resultsEl.innerHTML = "";
+				statsEl.textContent = "Signed out.";
+				settingsMenu.classList.add("open");
+				settingsVisible = true;
+			} catch (error) {
+				errorBox.textContent = error.message || "Sign out failed.";
 				errorBox.style.display = "block";
 			}
 		}
@@ -735,61 +733,29 @@
 				settingsMenu.classList.toggle("open", settingsVisible);
 			});
 
-			unlockBtn.addEventListener("click", () => unlockWithKey(keyInput.value));
-
-			scanBtn.addEventListener("click", () => {
-				if (stopScanner) {
-					stopActiveScanner();
-					return;
-				}
-				errorBox.style.display = "none";
-				scanVideo.style.display = "block";
-				stopScanner = DirectoryCrypto.startQrScanner(
-					scanVideo,
-					(decodedText) => {
-						unlockWithKey(decodedText);
-					},
-					(err) => {
-						errorBox.textContent = err.message || "QR scan failed";
-						errorBox.style.display = "block";
-					}
-				);
-			});
-
-			showQrBtn.addEventListener("click", () => {
-				const normalized = DirectoryCrypto.normalizeKeyInput(activeKey || keyInput.value);
-				if (!normalized) {
-					errorBox.textContent = "No valid key set yet.";
-					errorBox.style.display = "block";
-					return;
-				}
-				qrCanvas.style.display = "block";
-				qrCanvas.innerHTML = "";
-				new QRCode(qrCanvas, {
-					text: DirectoryCrypto.formattedKey(normalized),
-					width: 220,
-					height: 220,
-					correctLevel: QRCode.CorrectLevel.M
-				});
-			});
+			signInBtn.addEventListener("click", signIn);
+			signUpBtn.addEventListener("click", signUp);
+			signOutBtn.addEventListener("click", signOut);
 		}
 
 		applyUrlState();
 		bindEvents();
 
-		const fromUrl = DirectoryCrypto.upsertKeyFromUrl();
-		activeKey = fromUrl || DirectoryCrypto.getCookieKey();
-		if (activeKey) {
-			keyInput.value = DirectoryCrypto.formattedKey(activeKey);
-			settingsMenu.classList.remove("open");
-			settingsVisible = false;
-		} else {
-			settingsBtn.style.display = "inline-flex";
-			settingsMenu.classList.add("open");
-			settingsVisible = true;
-		}
+		supabaseClient.auth.onAuthStateChange((_event, session) => {
+			currentSession = session;
+			setAuthUi(session);
+		});
 
-		loadData();
+		(async () => {
+			const { data } = await supabaseClient.auth.getSession();
+			currentSession = data.session;
+			setAuthUi(currentSession);
+			if (currentSession) {
+				settingsMenu.classList.remove("open");
+				settingsVisible = false;
+			}
+			loadData();
+		})();
 	</script>
 </body>
 </html>

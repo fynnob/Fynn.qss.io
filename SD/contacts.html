@@ -387,11 +387,13 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="assets/directory-crypto.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const DATA_PATHS = ["Data/combined_directory.json.enc", "Data/combined_directory.json"];
-      const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='64' fill='%23d9efe9'/%3E%3Ccircle cx='64' cy='50' r='24' fill='%236ca397'/%3E%3Cpath d='M24 110c4-22 20-36 40-36s36 14 40 36' fill='%236ca397'/%3E%3C/svg%3E";
+    const SUPABASE_URL = "https://zkdfkzuhrstdtelllwot.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QzQ-jNJNhpbxU5mvuwPhUA_XEHdXhsx";
+    const SUPABASE_TABLE = "maindata";
+    const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='64' fill='%23d9efe9'/%3E%3Ccircle cx='64' cy='50' r='24' fill='%236ca397'/%3E%3Cpath d='M24 110c4-22 20-36 40-36s36 14 40 36' fill='%236ca397'/%3E%3C/svg%3E";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
     const loadingEl = document.getElementById("loading");
     const errorBox = document.getElementById("errorBox");
@@ -445,48 +447,26 @@
           .replace(/([?&]height=)\d+/i, `$1${size}`);
       }
 
-      function extractEmails(raw) {
-        const emails = [];
-        const addFrom = (value) => {
-          const text = String(value || "");
-          const found = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
-          for (const email of found) emails.push(email.toLowerCase());
-        };
-        addFrom(raw.google_email);
-        for (const line of raw.google_raw_lines || []) addFrom(line);
-        for (const item of raw.iserv_results || []) {
-          addFrom(item && item.label);
-          addFrom(item && item.text);
-          addFrom(item && item.value);
+    function extractEmails(raw) {
+      const emails = [];
+      if (Array.isArray(raw.Email)) {
+        for (const email of raw.Email) {
+          if (email) emails.push(String(email).toLowerCase());
         }
-        return [...new Set(emails)];
       }
-
-    function parseLabel(label) {
-      const str = typeof label === "string" ? label : "";
-      const match = str.match(/^(.*?)\s*<([^>]+)>$/);
-      if (!match) return { fullName: "", email: "" };
-      return {
-        fullName: match[1].trim(),
-        email: match[2].trim()
-      };
+      return [...new Set(emails)];
     }
 
     function normalizeProfile(raw) {
       if (!raw || typeof raw !== "object") return null;
-      const name = (raw.name || "").trim();
+      const name = (raw.Name || "").trim();
       if (!name) return null;
 
-      const primaryIserv = Array.isArray(raw.iserv_results)
-        ? raw.iserv_results.find((item) => item && typeof item === "object")
-        : null;
-
-      const parsed = parseLabel(primaryIserv ? primaryIserv.label : "");
-        const iservAvatar = (primaryIserv && primaryIserv.avatar) || parseAvatarFromHtml(primaryIserv && primaryIserv.avatarHtml);
-        const googleAvatar = makeHiResGoogleUrl(raw.google_profile_picture || "", 512);
-      const extra = (primaryIserv && primaryIserv.extra ? String(primaryIserv.extra) : "").trim();
-        const emails = extractEmails(raw);
-        const primaryEmail = raw.google_email || parsed.email || emails[0] || "";
+      const iservAvatar = String(raw.IservPP || "").trim();
+      const googleAvatar = makeHiResGoogleUrl(raw.GooglePP || "", 512);
+      const extra = String(raw.Type || "").trim();
+      const emails = extractEmails(raw);
+      const primaryEmail = emails[0] || "";
 
       let role = "Other";
       if (/teacher/i.test(extra)) role = "Teacher";
@@ -503,8 +483,8 @@
       return {
         id: name.toLowerCase(),
         name,
-        fullName: parsed.fullName || name,
-          email: primaryEmail,
+        fullName: name,
+        email: primaryEmail,
         role,
         className,
         extra,
@@ -667,12 +647,36 @@
         }
       }
 
+    async function fetchAllRows() {
+      const pageSize = 1000;
+      let offset = 0;
+      const rows = [];
+
+      while (true) {
+        const { data, error } = await supabaseClient
+          .from(SUPABASE_TABLE)
+          .select("*")
+          .order("Name", { ascending: true })
+          .range(offset, offset + pageSize - 1);
+
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < pageSize) break;
+        offset += pageSize;
+      }
+
+      return rows;
+    }
+
     async function init() {
       buildBackLinks();
       try {
-          const payload = await DirectoryCrypto.fetchDirectoryData(DATA_PATHS, DirectoryCrypto.getCookieKey() || DirectoryCrypto.upsertKeyFromUrl());
-        const rawPeople = Array.isArray(payload.people) ? payload.people : [];
-        const profiles = rawPeople.map(normalizeProfile).filter(Boolean);
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        if (!sessionData || !sessionData.session) {
+          throw new Error("Not signed in. Open index page and sign in first.");
+        }
+        const rawRows = await fetchAllRows();
+        const profiles = rawRows.map(normalizeProfile).filter(Boolean);
 
         const selected = pickProfile(profiles);
         if (!selected) {
@@ -684,7 +688,7 @@
         loadingEl.hidden = false;
         profileCard.hidden = true;
         errorBox.style.display = "block";
-        errorBox.textContent = error.message;
+        errorBox.textContent = error.message || "Failed to load profile from Supabase.";
       }
     }
 
