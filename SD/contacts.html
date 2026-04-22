@@ -272,6 +272,47 @@
       object-fit: contain;
     }
 
+    .familyList {
+      display: grid;
+      gap: 10px;
+    }
+
+    .familyCard {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 10px;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #ffffff;
+    }
+
+    .familyAvatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #d8e8cb;
+      background: #edf7e5;
+    }
+
+    .familyName {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #1f2b1b;
+      word-break: break-word;
+    }
+
+    .familyMeta {
+      margin: 3px 0 0;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
     .lockbox {
       border-radius: 12px;
       padding: 12px;
@@ -369,6 +410,12 @@
         </div>
       </div>
       <div class="grid" id="profileRows"></div>
+      <div id="familyBlock" class="grid" hidden>
+        <div class="row">
+          <span class="label">Family</span>
+          <div id="familyList" class="familyList"></div>
+        </div>
+      </div>
     </section>
   </div>
 
@@ -404,6 +451,8 @@
     const shortNameEl = document.getElementById("shortName");
     const profileMetaEl = document.getElementById("profileMeta");
     const profileRows = document.getElementById("profileRows");
+    const familyBlock = document.getElementById("familyBlock");
+    const familyList = document.getElementById("familyList");
       const backToSearch = document.getElementById("backToSearch");
     const imageModal = document.getElementById("imageModal");
     const imageModalImg = document.getElementById("imageModalImg");
@@ -414,6 +463,9 @@
     let currentProfile = null;
     let modalImageUrl = "";
     let modalImageLabel = "Profile";
+
+    const DIRECTORY_CACHE_KEY = "jfks_maindata_cache_v1";
+    const DIRECTORY_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
     function parseAvatarFromHtml(avatarHtml) {
       if (!avatarHtml || typeof avatarHtml !== "string") return "";
@@ -457,12 +509,44 @@
       return [...new Set(emails)];
     }
 
+    function parseIservAvatar(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      if (raw.startsWith("<")) {
+        return parseAvatarFromHtml(raw);
+      }
+      return raw;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getLastName(value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+      if (text.includes(" ")) {
+        const parts = text.split(/\s+/).filter(Boolean);
+        return (parts[parts.length - 1] || "").toLowerCase();
+      }
+      if (text.includes(".")) {
+        const parts = text.split(".").filter(Boolean);
+        return (parts[parts.length - 1] || "").toLowerCase();
+      }
+      return "";
+    }
+
     function normalizeProfile(raw) {
       if (!raw || typeof raw !== "object") return null;
       const name = (raw.Name || "").trim();
       if (!name) return null;
 
-      const iservAvatar = String(raw.IservPP || "").trim();
+      const iservAvatar = parseIservAvatar(raw.IservPP);
       const googleAvatar = makeHiResGoogleUrl(raw.GooglePP || "", 512);
       const extra = String(raw.Type || "").trim();
       const emails = extractEmails(raw);
@@ -472,13 +556,7 @@
       if (/teacher/i.test(extra)) role = "Teacher";
       else if (/student/i.test(extra)) role = "Student";
 
-      let className = "";
-      if (extra.includes(",")) {
-        const maybeClass = extra.split(",")[0].trim();
-        if (maybeClass && !/teacher|student/i.test(maybeClass)) className = maybeClass;
-      } else if (/^[0-9]{1,2}[a-z]$/i.test(extra)) {
-        className = extra;
-      }
+      const className = String(raw.Class || "").trim();
 
       return {
         id: name.toLowerCase(),
@@ -545,10 +623,75 @@
         return `
           <details class="jsonBlock">
             <summary>${label}</summary>
-            <pre>${JSON.stringify(data, null, 2)}</pre>
+            <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
           </details>
         `;
       }
+
+    function renderFamily(selectedProfile, allProfiles) {
+      const lastName = getLastName(selectedProfile.fullName || selectedProfile.name);
+      if (!lastName) {
+        familyBlock.hidden = true;
+        familyList.innerHTML = "";
+        return;
+      }
+
+      const family = allProfiles
+        .filter((profile) => profile.id !== selectedProfile.id)
+        .filter((profile) => getLastName(profile.fullName || profile.name) === lastName)
+        .sort((a, b) => a.fullName.localeCompare(b.fullName));
+
+      if (family.length === 0) {
+        familyBlock.hidden = true;
+        familyList.innerHTML = "";
+        return;
+      }
+
+      familyList.innerHTML = "";
+      const baseParams = new URLSearchParams(window.location.search);
+
+      for (const member of family) {
+        const link = document.createElement("a");
+        link.className = "familyCard";
+        const linkParams = new URLSearchParams(baseParams);
+        linkParams.set("profile", member.name);
+        link.href = `contacts.html?${linkParams.toString()}`;
+
+        const avatar = document.createElement("img");
+        avatar.className = "familyAvatar";
+        avatar.src = member.googleAvatar || member.avatar;
+        avatar.alt = member.fullName;
+        avatar.loading = "lazy";
+        avatar.referrerPolicy = "no-referrer";
+        avatar.addEventListener("error", () => {
+          if (avatar.src !== member.iservAvatar && member.iservAvatar) {
+            avatar.src = member.iservAvatar;
+          } else {
+            avatar.src = DEFAULT_AVATAR;
+          }
+        });
+
+        const textWrap = document.createElement("div");
+        const name = document.createElement("p");
+        name.className = "familyName";
+        name.textContent = member.fullName;
+        const meta = document.createElement("p");
+        meta.className = "familyMeta";
+        const isStudent = member.role === "Student";
+        const parts = [];
+        if (isStudent && member.className) parts.push(member.className);
+        parts.push(member.role);
+        meta.textContent = parts.join(" • ");
+
+        textWrap.appendChild(name);
+        textWrap.appendChild(meta);
+        link.appendChild(avatar);
+        link.appendChild(textWrap);
+        familyList.appendChild(link);
+      }
+
+      familyBlock.hidden = false;
+    }
 
     function renderProfile(profile) {
       currentProfile = profile;
@@ -571,14 +714,6 @@
             ? "IServ"
             : "Unknown";
 
-      const source = profile.google && profile.iserv
-        ? "Google + IServ"
-        : profile.google
-          ? "Google"
-          : profile.iserv
-            ? "IServ"
-            : "Unknown";
-
       profileRows.innerHTML = [
           rowHtml("Emails", (profile.emails && profile.emails.length ? profile.emails.join(" • ") : profile.email || "No email available")),
         rowHtml("Role", profile.role),
@@ -586,13 +721,33 @@
         rowHtml("Extra", profile.extra || "No extra metadata"),
         rowHtml("Google Status", profile.google ? "Present" : "Missing"),
         rowHtml("IServ Status", profile.iserv ? "Present" : "Missing"),
-          rowHtml("IServ Query", profile.raw.iserv_query_url || "Not available"),
           jsonRow("View Row", profile.raw)
       ].join("");
 
         loadingEl.hidden = true;
         profileCard.hidden = false;
     }
+
+      function readCachedRows() {
+        try {
+          const raw = localStorage.getItem(DIRECTORY_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || !Array.isArray(parsed.rows) || typeof parsed.fetchedAt !== "number") return null;
+          if (Date.now() - parsed.fetchedAt > DIRECTORY_CACHE_TTL_MS) return null;
+          return parsed.rows;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function writeCachedRows(rows) {
+        try {
+          localStorage.setItem(DIRECTORY_CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), rows }));
+        } catch (_error) {
+          // Ignore storage failures.
+        }
+      }
 
       function closeImageModal() {
         imageModal.classList.remove("open");
@@ -607,7 +762,7 @@
           src = makeHiResIservUrl(currentProfile.iservAvatar || "", 512) || currentProfile.iservAvatar || "";
           modalImageLabel = "IServ";
         } else {
-          src = makeHiResGoogleUrl((currentProfile.raw && currentProfile.raw.google_profile_picture) || currentProfile.googleAvatar || "", 512);
+          src = makeHiResGoogleUrl((currentProfile.raw && currentProfile.raw.GooglePP) || currentProfile.googleAvatar || "", 512);
           if (!src) {
             src = makeHiResIservUrl(currentProfile.iservAvatar || "", 512) || currentProfile.iservAvatar || "";
           }
@@ -648,6 +803,9 @@
       }
 
     async function fetchAllRows() {
+      const cached = readCachedRows();
+      if (cached) return cached;
+
       const pageSize = 1000;
       let offset = 0;
       const rows = [];
@@ -664,6 +822,8 @@
         if (!data || data.length < pageSize) break;
         offset += pageSize;
       }
+
+      writeCachedRows(rows);
 
       return rows;
     }
@@ -683,10 +843,12 @@
           throw new Error("No profile found. Use ?profile=name or ?q=search-term in URL.");
         }
 
-          renderProfile(selected);
+        renderProfile(selected);
+        renderFamily(selected, profiles);
       } catch (error) {
         loadingEl.hidden = false;
         profileCard.hidden = true;
+        familyBlock.hidden = true;
         errorBox.style.display = "block";
         errorBox.textContent = error.message || "Failed to load profile from Supabase.";
       }

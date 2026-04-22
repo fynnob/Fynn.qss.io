@@ -103,7 +103,8 @@
 		}
 
 		select,
-		button {
+		button,
+		.filters input {
 			border-radius: 12px;
 			border: 1px solid #b9cfab;
 			padding: 12px;
@@ -282,7 +283,7 @@
 			<h1>JFKS lookup</h1>
 
 			<div class="controls">
-				<input id="q" class="search" type="search" placeholder="Search names, email, class, role..." autocomplete="off">
+				<input id="q" class="search" type="search" placeholder="Search names, class, role..." autocomplete="off">
 				<div class="filters">
 					<select id="typeFilter" aria-label="Filter by role">
 						<option value="all">All profiles</option>
@@ -297,6 +298,7 @@
 						<option value="google">Google only</option>
 						<option value="iserv">IServ only</option>
 					</select>
+					<button id="reloadBtn" class="secondaryBtn" type="button">Reload Data</button>
 					<button id="clearBtn" type="button">Clear Filters</button>
 				</div>
 			</div>
@@ -320,6 +322,7 @@
 		const typeFilter = document.getElementById("typeFilter");
 		const classFilter = document.getElementById("classFilter");
 		const sourceFilter = document.getElementById("sourceFilter");
+		const reloadBtn = document.getElementById("reloadBtn");
 		const clearBtn = document.getElementById("clearBtn");
 		const statsEl = document.getElementById("stats");
 		const resultsEl = document.getElementById("results");
@@ -363,7 +366,11 @@
 		let pendingSignupEmail = "";
 
 		let allProfiles = [];
+		let visibleCount = 300;
 		let settingsVisible = false;
+
+		const DIRECTORY_CACHE_KEY = "jfks_maindata_cache_v1";
+		const DIRECTORY_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 		function makeHiResGoogleUrl(url, size) {
 			const raw = String(url || "").trim();
@@ -383,6 +390,35 @@
 			return [...new Set(emails)];
 		}
 
+		function parseAvatarFromHtml(avatarHtml) {
+			if (!avatarHtml || typeof avatarHtml !== "string") {
+				return "";
+			}
+			const sourceSrcset = avatarHtml.match(/<source[^>]*srcset=\"([^\"]+)\"/i);
+			if (sourceSrcset && sourceSrcset[1]) {
+				const candidates = sourceSrcset[1]
+					.split(",")
+					.map((entry) => entry.trim().split(" "))
+					.map(([url, descriptor]) => ({ url, size: parseInt((descriptor || "").replace(/[^0-9]/g, ""), 10) || 0 }))
+					.filter((item) => item.url);
+				if (candidates.length) {
+					candidates.sort((a, b) => b.size - a.size);
+					return candidates[0].url;
+				}
+			}
+			const srcMatch = avatarHtml.match(/<img[^>]*src=\"([^\"]+)\"/i);
+			return srcMatch ? srcMatch[1] : "";
+		}
+
+		function parseIservAvatar(value) {
+			const raw = String(value || "").trim();
+			if (!raw) return "";
+			if (raw.startsWith("<")) {
+				return parseAvatarFromHtml(raw);
+			}
+			return raw;
+		}
+
 		function normalizeProfile(raw) {
 			if (!raw || typeof raw !== "object") {
 				return null;
@@ -393,7 +429,7 @@
 				return null;
 			}
 
-			const iservAvatar = String(raw.IservPP || "").trim();
+			const iservAvatar = parseIservAvatar(raw.IservPP);
 			const googleAvatar = makeHiResGoogleUrl(raw.GooglePP || "", 128);
 			const extra = String(raw.Type || "").trim();
 			const emails = extractEmails(raw);
@@ -564,8 +600,8 @@
 			if (type === "teacher" && profile.role !== "Teacher") return false;
 			if (type === "other" && ["Student", "Teacher"].includes(profile.role)) return false;
 			if (cls && !profile.className.toLowerCase().includes(cls) && !profile.extra.toLowerCase().includes(cls)) return false;
-			if (source === "google" && !profile.google) return false;
-			if (source === "iserv" && !profile.iserv) return false;
+			if (source === "google" && !(profile.google && !profile.iserv)) return false;
+			if (source === "iserv" && !(profile.iserv && !profile.google)) return false;
 			if (source === "both" && !(profile.google && profile.iserv)) return false;
 			return true;
 		}
@@ -585,7 +621,7 @@
 
 			const stateParams = new URLSearchParams(window.location.search);
 
-			filtered.slice(0, 300).forEach((profile) => {
+			filtered.slice(0, visibleCount).forEach((profile) => {
 				const a = document.createElement("a");
 				a.className = "card";
 
@@ -593,34 +629,81 @@
 				linkParams.set("profile", profile.name);
 				a.href = `contacts.html?${linkParams.toString()}`;
 
-				const sourceLabel = profile.google && profile.iserv
-					? "Google + IServ" : profile.google ? "Google" : profile.iserv ? "IServ" : "Unknown";
 				const isStudent = profile.role === "Student";
 				const metaParts = [];
 				if (isStudent && profile.className) metaParts.push(profile.className);
 				metaParts.push(profile.role);
 
-				a.innerHTML = `
-					<img class="avatar" src="${profile.googleAvatar || profile.avatar}" alt="${profile.fullName}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='${profile.iservAvatar || DEFAULT_AVATAR}'">
-					<div>
-						<p class="name">${profile.fullName}</p>
-						<p class="meta">${metaParts.join(" • ") || "Other"}${profile.extra && !isStudent ? ` • ${profile.extra}` : ""}</p>
-					</div>
-					<div class="rightMeta"></div>
-				`;
+				const avatar = document.createElement("img");
+				avatar.className = "avatar";
+				avatar.src = profile.googleAvatar || profile.avatar;
+				avatar.alt = profile.fullName;
+				avatar.loading = "lazy";
+				avatar.referrerPolicy = "no-referrer";
+				avatar.addEventListener("error", () => {
+					if (avatar.src !== profile.iservAvatar && profile.iservAvatar) {
+						avatar.src = profile.iservAvatar;
+					} else {
+						avatar.src = DEFAULT_AVATAR;
+					}
+				});
+
+				const content = document.createElement("div");
+				const nameP = document.createElement("p");
+				nameP.className = "name";
+				nameP.textContent = profile.fullName;
+				const metaP = document.createElement("p");
+				metaP.className = "meta";
+				metaP.textContent = `${metaParts.join(" • ") || "Other"}${profile.extra && !isStudent ? ` • ${profile.extra}` : ""}`;
+				content.appendChild(nameP);
+				content.appendChild(metaP);
+
+				a.appendChild(avatar);
+				a.appendChild(content);
 
 				resultsEl.appendChild(a);
 			});
 
-			if (filtered.length > 300) {
-				const msg = document.createElement("p");
-				msg.className = "meta";
-				msg.textContent = "Showing first 300 results. Refine your search to narrow down.";
-				resultsEl.appendChild(msg);
+			if (filtered.length > visibleCount) {
+				const moreBtn = document.createElement("button");
+				moreBtn.type = "button";
+				moreBtn.className = "secondaryBtn";
+				moreBtn.textContent = `Load More (${Math.min(100, filtered.length - visibleCount)} more)`;
+				moreBtn.addEventListener("click", () => {
+					visibleCount += 100;
+					renderResults();
+				});
+				resultsEl.appendChild(moreBtn);
 			}
 		}
 
-		async function fetchAllRows() {
+		function readCachedRows() {
+			try {
+				const raw = localStorage.getItem(DIRECTORY_CACHE_KEY);
+				if (!raw) return null;
+				const parsed = JSON.parse(raw);
+				if (!parsed || !Array.isArray(parsed.rows) || typeof parsed.fetchedAt !== "number") return null;
+				if (Date.now() - parsed.fetchedAt > DIRECTORY_CACHE_TTL_MS) return null;
+				return parsed.rows;
+			} catch (_error) {
+				return null;
+			}
+		}
+
+		function writeCachedRows(rows) {
+			try {
+				localStorage.setItem(DIRECTORY_CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), rows }));
+			} catch (_error) {
+				// Ignore storage failures.
+			}
+		}
+
+		async function fetchAllRows(forceRefresh = false) {
+			if (!forceRefresh) {
+				const cached = readCachedRows();
+				if (cached) return cached;
+			}
+
 			const pageSize = 1000;
 			let offset = 0;
 			const rows = [];
@@ -637,18 +720,20 @@
 				if (!data || data.length < pageSize) break;
 				offset += pageSize;
 			}
+			writeCachedRows(rows);
 
 			return rows;
 		}
 
-		async function loadData() {
+		async function loadData(forceRefresh = false) {
 			try {
 				errorBox.style.display = "none";
 				if (!currentSession) {
 					throw new Error("Please sign in first. Only authenticated users can read data.");
 				}
-				const rawRows = await fetchAllRows();
+				const rawRows = await fetchAllRows(forceRefresh);
 				allProfiles = rawRows.map(normalizeProfile).filter(Boolean);
+				visibleCount = 300;
 				renderResults();
 				statsEl.textContent = `Showing ${allProfiles.length} of ${allProfiles.length} profiles`;
 			} catch (error) {
@@ -760,10 +845,12 @@
 		function bindEvents() {
 			[qInput, typeFilter, classFilter, sourceFilter].forEach((el) => {
 				el.addEventListener("input", () => {
+					visibleCount = 300;
 					writeUrlState();
 					renderResults();
 				});
 				el.addEventListener("change", () => {
+					visibleCount = 300;
 					writeUrlState();
 					renderResults();
 				});
@@ -774,8 +861,13 @@
 				typeFilter.value = "all";
 				classFilter.value = "";
 				sourceFilter.value = "all";
+				visibleCount = 300;
 				writeUrlState();
 				renderResults();
+			});
+
+			reloadBtn.addEventListener("click", async () => {
+				await loadData(true);
 			});
 
 			settingsBtn.addEventListener("click", () => {
