@@ -342,6 +342,10 @@
 				<button id="signUpBtn" class="secondaryBtn" type="button">Sign Up</button>
 				<button id="signOutBtn" class="secondaryBtn" type="button">Sign Out</button>
 			</div>
+			<div id="otpRow" class="lockRow" style="display:none;">
+				<input id="otpInput" class="keyInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter 6-digit OTP code">
+				<button id="verifyOtpBtn" class="secondaryBtn" type="button">Verify OTP</button>
+			</div>
 		`;
 		document.querySelector(".hero").insertBefore(settingsMenu, errorBox);
 
@@ -351,8 +355,12 @@
 		const signInBtn = document.getElementById("signInBtn");
 		const signUpBtn = document.getElementById("signUpBtn");
 		const signOutBtn = document.getElementById("signOutBtn");
+		const otpRow = document.getElementById("otpRow");
+		const otpInput = document.getElementById("otpInput");
+		const verifyOtpBtn = document.getElementById("verifyOtpBtn");
 
 		let currentSession = null;
+		let pendingSignupEmail = "";
 
 		let allProfiles = [];
 		let settingsVisible = false;
@@ -678,15 +686,54 @@
 
 		async function signUp() {
 			try {
+				const email = emailInput.value.trim();
+				if (!email || !passwordInput.value) {
+					throw new Error("Enter email and password first.");
+				}
 				const { error } = await supabaseClient.auth.signUp({
-					email: emailInput.value.trim(),
+					email,
 					password: passwordInput.value
 				});
 				if (error) throw error;
-				errorBox.textContent = "Signup request submitted. If allowlisted, you can sign in now.";
+				pendingSignupEmail = email;
+				otpRow.style.display = "flex";
+				errorBox.textContent = "Signup created. Enter the OTP code from your email to confirm.";
 				errorBox.style.display = "block";
 			} catch (error) {
 				errorBox.textContent = error.message || "Sign up failed.";
+				errorBox.style.display = "block";
+			}
+		}
+
+		async function verifySignupOtp() {
+			try {
+				const email = pendingSignupEmail || emailInput.value.trim();
+				const token = otpInput.value.trim();
+				if (!email) throw new Error("Missing signup email.");
+				if (!token) throw new Error("Enter OTP code.");
+
+				const { data, error } = await supabaseClient.auth.verifyOtp({
+					email,
+					token,
+					type: "signup"
+				});
+				if (error) throw error;
+
+				if (!data.session) {
+					const signInResult = await supabaseClient.auth.signInWithPassword({
+						email,
+						password: passwordInput.value
+					});
+					if (signInResult.error) throw signInResult.error;
+				}
+
+				otpInput.value = "";
+				otpRow.style.display = "none";
+				pendingSignupEmail = "";
+				errorBox.style.display = "none";
+				await loadData();
+			} catch (error) {
+				errorBox.textContent = error.message || "OTP verification failed.";
 				errorBox.style.display = "block";
 			}
 		}
@@ -696,6 +743,9 @@
 				await supabaseClient.auth.signOut();
 				currentSession = null;
 				setAuthUi(null);
+				pendingSignupEmail = "";
+				otpInput.value = "";
+				otpRow.style.display = "none";
 				allProfiles = [];
 				resultsEl.innerHTML = "";
 				statsEl.textContent = "Signed out.";
@@ -735,6 +785,7 @@
 
 			signInBtn.addEventListener("click", signIn);
 			signUpBtn.addEventListener("click", signUp);
+			verifyOtpBtn.addEventListener("click", verifySignupOtp);
 			signOutBtn.addEventListener("click", signOut);
 		}
 
