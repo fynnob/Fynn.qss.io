@@ -298,7 +298,7 @@
 						<option value="google">Google only</option>
 						<option value="iserv">IServ only</option>
 					</select>
-					<button id="reloadBtn" class="secondaryBtn" type="button">Reload Data</button>
+					<button id="reloadBtn" class="secondaryBtn" type="button" hidden>Reload Data</button>
 					<button id="clearBtn" type="button">Clear Filters</button>
 				</div>
 			</div>
@@ -368,9 +368,13 @@
 		let allProfiles = [];
 		let visibleCount = 300;
 		let settingsVisible = false;
+		const DIRECTORY_SCROLL_KEY = "jfks_directory_scroll_y";
 
 		const DIRECTORY_CACHE_KEY = "jfks_maindata_cache_v1";
 		const DIRECTORY_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+		if ("scrollRestoration" in history) {
+			history.scrollRestoration = "manual";
+		}
 
 		function makeHiResGoogleUrl(url, size) {
 			const raw = String(url || "").trim();
@@ -628,6 +632,11 @@
 				const linkParams = new URLSearchParams(stateParams);
 				linkParams.set("profile", profile.name);
 				a.href = `contacts.html?${linkParams.toString()}`;
+				a.addEventListener("click", (event) => {
+					event.preventDefault();
+					saveScrollPosition();
+					window.location.href = a.href;
+				});
 
 				const isStudent = profile.role === "Student";
 				const metaParts = [];
@@ -675,6 +684,24 @@
 				});
 				resultsEl.appendChild(moreBtn);
 			}
+		}
+
+		function saveScrollPosition() {
+			sessionStorage.setItem(DIRECTORY_SCROLL_KEY, String(window.scrollY || 0));
+		}
+
+		function restoreScrollPosition() {
+			const stored = sessionStorage.getItem(DIRECTORY_SCROLL_KEY);
+			if (stored === null) return;
+			const scrollY = parseInt(stored, 10);
+			if (Number.isNaN(scrollY)) {
+				sessionStorage.removeItem(DIRECTORY_SCROLL_KEY);
+				return;
+			}
+			requestAnimationFrame(() => {
+				window.scrollTo({ top: scrollY, behavior: "auto" });
+				sessionStorage.removeItem(DIRECTORY_SCROLL_KEY);
+			});
 		}
 
 		function readCachedRows() {
@@ -735,6 +762,7 @@
 				allProfiles = rawRows.map(normalizeProfile).filter(Boolean);
 				visibleCount = 300;
 				renderResults();
+				restoreScrollPosition();
 				statsEl.textContent = `Showing ${allProfiles.length} of ${allProfiles.length} profiles`;
 			} catch (error) {
 				statsEl.textContent = "Could not load contacts.";
@@ -747,11 +775,18 @@
 			}
 		}
 
+		function isAdminUser(session) {
+			if (!session || !session.user || !session.user.email) return false;
+			return session.user.email.endsWith("@fynn.qzz.io");
+		}
+
 		function setAuthUi(session) {
 			if (session && session.user) {
 				authStatus.textContent = `Signed in as ${session.user.email}`;
+				reloadBtn.hidden = !isAdminUser(session);
 			} else {
 				authStatus.textContent = "Not signed in.";
+				reloadBtn.hidden = true;
 			}
 		}
 

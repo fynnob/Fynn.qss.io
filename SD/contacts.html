@@ -57,12 +57,21 @@
       font-weight: 700;
     }
 
-      .titleBar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
+    .titleBar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+    }
+
+    .backArrow {
+      position: relative;
+      top: -2px;
+      transition: opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease;
     }
 
     .profileMeta {
@@ -133,9 +142,9 @@
     }
 
     .grid {
-      padding: 18px 24px 26px;
+      padding: 14px 24px 18px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
 
     .row {
@@ -313,6 +322,211 @@
       color: var(--muted);
     }
 
+    .searchRow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .searchActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .primaryBtn {
+      border: 1px solid #1f8f81;
+      background: linear-gradient(120deg, #276f67, #1f8f81);
+      color: white;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .searchHint {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .searchResults {
+      display: grid;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .quickGlance {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .quickSummary {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #233a35;
+    }
+
+    .glanceSection {
+      border-top: 1px dashed #c8ddd6;
+      padding-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .glanceSection:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .glanceTitle {
+      margin: 0;
+      font-size: 0.84rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .glanceList {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      font-size: 0.92rem;
+      color: #1f3631;
+    }
+
+    .glanceList li {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .glanceListBoxes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .blockFact {
+      display: flex;
+      flex-direction: column;
+      background: #eef8f5;
+      border: 1px solid #b8d4cc;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      color: #1f3631;
+    }
+
+    .blockFact a {
+      color: inherit;
+      text-decoration: none;
+      display: block;
+    }
+    
+    .blockFact a strong {
+      color: #155c53;
+    }
+
+    .blockFact a:hover strong {
+      text-decoration: underline;
+    }
+
+    .factLink {
+      display: inline-block;
+      margin-top: 6px;
+      color: #155c53;
+      text-decoration: underline;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .factSub {
+      display: block;
+      color: #3b6b61;
+      font-size: 0.82rem;
+      margin-top: 2px;
+    }
+
+    .sourceList {
+      display: grid;
+      gap: 8px;
+    }
+
+    .sourceRow {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .sourceRow a {
+      color: #155c53;
+      text-decoration: none;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .sourceRow a:hover {
+      text-decoration: underline;
+    }
+
+    .sourceTitleLink {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .moreBtn {
+      width: fit-content;
+      border: 1px solid #b8d4cc;
+      background: #eef8f5;
+      color: #2b5f56;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .resultCard {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .resultCard a {
+      color: #155c53;
+      text-decoration: none;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .resultCard a:hover {
+      text-decoration: underline;
+    }
+
+    .resultMeta {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .resultSnippet {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #233a35;
+      word-break: break-word;
+    }
+
     .lockbox {
       border-radius: 12px;
       padding: 12px;
@@ -409,13 +623,30 @@
           <p id="profileMeta" class="profileMeta"></p>
         </div>
       </div>
-      <div class="grid" id="profileRows"></div>
+      <div class="grid" id="profileRowsTop"></div>
       <div id="familyBlock" class="grid" hidden>
         <div class="row">
           <span class="label">Family</span>
           <div id="familyList" class="familyList"></div>
         </div>
       </div>
+      <div class="grid" id="aiSearchBlock">
+        <div class="row searchRow">
+          <span class="label">Search</span>
+          <div class="searchActions" style="display: flex; align-items: center; gap: 10px;">
+            <button id="searchBtn" class="primaryBtn" type="button">Search</button>
+            <div style="display: flex; align-items: center; gap: 5px;" title="Costs 3 Base + 1 per depth">
+              <span style="font-size: 12px; color: #5F6368;">Depth:</span>
+              <input type="range" id="scrapeDepthSlider" min="2" max="7" value="5" style="width: 60px;" oninput="document.getElementById('depthDisplay').innerText = this.value">
+              <span id="depthDisplay" style="font-size: 12px; font-weight: 500; color: #5F6368;">5</span>
+              <span id="creditsInfoIcon" style="cursor: pointer; background: #e0f2f1; color: #00796b; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-left: 5px;" title="Click to view credit usage">?</span>
+            </div>
+          </div>
+          <p id="searchHint" class="searchHint">No search data loaded yet.</p>
+          <div id="searchResults" class="searchResults" hidden></div>
+        </div>
+      </div>
+      <div class="grid" id="profileRowsBottom"></div>
     </section>
   </div>
 
@@ -434,6 +665,39 @@
     </div>
   </div>
 
+  <div id="creditsModal" class="imageModal" aria-hidden="true">
+    <div class="imageModalCard" style="max-width: 400px; display: block;">
+      <div class="imageModalBar">
+        <strong>AI Search Credits</strong>
+        <div class="imageModalActions">
+          <button id="closeCreditsModalBtn" class="imageModalBtn" type="button">Close</button>
+        </div>
+      </div>
+      <div style="padding: 20px; font-size: 14px; line-height: 1.5; color: #1c4b44;">
+        <p><strong>How it works:</strong><br>
+        AI searches cost credits. 3 Base credits + 1 credit per depth level.</p>
+        <p><strong>Your Balance: <span id="creditsModalBalance">Loading...</span></strong></p>
+        <p style="font-size: 12px; color: #555; margin-top: 10px;"><em>Loading an existing cached profile does not use credits. Re-doing an existing search will cost credits again.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="iservLoginModal" class="imageModal" aria-hidden="true">
+    <div class="imageModalCard" style="max-width: 440px; display: block;">
+      <div class="imageModalBar">
+        <strong>IServ Login Needed</strong>
+        <div class="imageModalActions">
+          <button id="closeIservLoginModalBtn" class="imageModalBtn" type="button">Close</button>
+        </div>
+      </div>
+      <div style="padding: 20px; font-size: 14px; line-height: 1.5; color: #1c4b44;">
+        <p>Please log into IServ so the profile picture can load.</p>
+        <p><a href="https://jfks-portal.de/iserv/" target="_blank" rel="noopener noreferrer">Open IServ login</a></p>
+        <p>Make sure to click <strong>Remember me</strong>. This is the same login used to access the school computers.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://zkdfkzuhrstdtelllwot.supabase.co";
@@ -448,12 +712,23 @@
     const avatarEl = document.getElementById("avatar");
     const iservAvatarImg = document.getElementById("iservAvatarImg");
     const fullNameEl = document.getElementById("fullName");
+    const creditsInfoIcon = document.getElementById("creditsInfoIcon");
+    const creditsModal = document.getElementById("creditsModal");
+    const closeCreditsModalBtn = document.getElementById("closeCreditsModalBtn");
+    const iservLoginModal = document.getElementById("iservLoginModal");
+    const closeIservLoginModalBtn = document.getElementById("closeIservLoginModalBtn");
+
     const shortNameEl = document.getElementById("shortName");
     const profileMetaEl = document.getElementById("profileMeta");
-    const profileRows = document.getElementById("profileRows");
+    const profileRowsTop = document.getElementById("profileRowsTop");
+    const profileRowsBottom = document.getElementById("profileRowsBottom");
     const familyBlock = document.getElementById("familyBlock");
     const familyList = document.getElementById("familyList");
       const backToSearch = document.getElementById("backToSearch");
+    const searchBtn = document.getElementById("searchBtn");
+    const scrapeDepthSlider = document.getElementById("scrapeDepthSlider");
+    const searchHint = document.getElementById("searchHint");
+    const searchResults = document.getElementById("searchResults");
     const imageModal = document.getElementById("imageModal");
     const imageModalImg = document.getElementById("imageModalImg");
     const imageModalTitle = document.getElementById("imageModalTitle");
@@ -461,11 +736,16 @@
     const closeImageModalBtn = document.getElementById("closeImageModalBtn");
 
     let currentProfile = null;
+    let currentSession = null;
+    let currentAiRecord = null;
     let modalImageUrl = "";
     let modalImageLabel = "Profile";
+    let iservLoginPromptedForProfileId = null;
 
     const DIRECTORY_CACHE_KEY = "jfks_maindata_cache_v1";
     const DIRECTORY_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+    const AI_RESEARCH_TABLE = "person_ai_research";
+    const AI_EDGE_FUNCTION = "ai-research-person";
 
     function parseAvatarFromHtml(avatarHtml) {
       if (!avatarHtml || typeof avatarHtml !== "string") return "";
@@ -619,6 +899,385 @@
       `;
     }
 
+    function isAdminSession(session) {
+      const email = session && session.user && session.user.email ? String(session.user.email).toLowerCase() : "";
+      return email.endsWith("@fynn.qzz.io");
+    }
+
+    function formatTime(value) {
+      if (!value) return "Unknown";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "Unknown";
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }
+
+    function flattenSourceResults(sourceData) {
+      const groups = sourceData && Array.isArray(sourceData.resultsByQuery) ? sourceData.resultsByQuery : [];
+      const flat = [];
+      for (const group of groups) {
+        const results = Array.isArray(group.results) ? group.results : [];
+        for (const entry of results) {
+          flat.push({
+            query: group.query || "",
+            rank: typeof entry.rank === "number" ? entry.rank : null,
+            title: entry.title || "",
+            snippet: entry.snippet || "",
+            url: entry.url || ""
+          });
+        }
+      }
+      return flat;
+    }
+
+    function compactText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function uniqueByKey(items, keyFn) {
+      const seen = new Set();
+      const out = [];
+      for (const item of items) {
+        const key = keyFn(item);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push(item);
+      }
+      return out;
+    }
+
+    function buildListSection(title, values) {
+      const cleaned = uniqueByKey(
+        (Array.isArray(values) ? values : [])
+          .filter((v) => v && (v.text || v.html))
+          .map((v) => ({ 
+            text: compactText(v.text), 
+            html: v.html ? v.html : null,
+            url: compactText(v.url) 
+          })),
+        (v) => v.text.toLowerCase()
+      );
+      if (cleaned.length === 0) return null;
+
+      const section = document.createElement("section");
+      section.className = "glanceSection";
+      const heading = document.createElement("h4");
+      heading.className = "glanceTitle";
+      heading.textContent = title;
+      const list = document.createElement("div");
+      list.className = "glanceListBoxes";
+
+      for (const item of cleaned.slice(0, 6)) {
+        const span = document.createElement("span");
+        span.className = "factBox blockFact";
+        
+        const contentEl = document.createElement("span");
+        if (item.html) {
+          contentEl.innerHTML = item.html;
+        } else {
+          contentEl.textContent = item.text;
+        }
+        
+        span.appendChild(contentEl);
+
+        if (item.url) {
+          const a = document.createElement("a");
+          a.href = item.url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.className = "factLink";
+          a.textContent = "Open source";
+          span.appendChild(a);
+        }
+        list.appendChild(span);
+      }
+
+      section.appendChild(heading);
+      section.appendChild(list);
+      return section;
+    }
+
+    function projectGlanceData(searchResults) {
+      const data = searchResults && typeof searchResults === "object" ? searchResults : {};
+      const profile = Array.isArray(data.profiles) && data.profiles.length ? data.profiles[0] : {};
+
+      const sports = (Array.isArray(profile.sports) ? profile.sports : [])
+        .map((s) => {
+          const sportBase = escapeHtml([compactText(s.sport), compactText(s.teamOrClub), compactText(s.level)].filter(Boolean).join(" - "));
+          const eventsArray = Array.isArray(s.eventsOrMeets) ? s.eventsOrMeets : (s.eventsOrMeets ? [s.eventsOrMeets] : []);
+          const statsArray = Array.isArray(s.topTimesOrStats) ? s.topTimesOrStats : (s.topTimesOrStats ? [s.topTimesOrStats] : []);
+          const events = eventsArray.map(e => escapeHtml(compactText(e))).filter(Boolean).join("<br>• ");
+          const stats = statsArray.map(stat => escapeHtml(compactText(stat))).filter(Boolean).join("<br>• ");
+          
+          let html = `<strong>${sportBase}</strong>`;
+          if (events) html += `<br><span class="factSub">Events:<br>&bull; ${events}</span>`;
+          if (stats) html += `<br><span class="factSub">Stats:<br>&bull; ${stats}</span>`;
+
+          return { 
+            text: [sportBase, events, stats].join(" "), 
+            html: html,
+            url: s.sourceUrl 
+          };
+        });
+
+      const activities = (Array.isArray(profile.activities) ? profile.activities : [])
+        .map((a) => {
+          const name = escapeHtml(compactText(a.name));
+          const desc = escapeHtml(compactText(a.description));
+          let html = `<strong>${name}</strong>`;
+          if (desc) html += `<br><span class="factSub">${desc}</span>`;
+          
+          return {
+            text: [name, desc].join(" "),
+            html: html,
+            url: a.sourceUrl
+          };
+        });
+
+      const work = (Array.isArray(profile.work) ? profile.work : [])
+        .map((w) => {
+          const org = escapeHtml(compactText(w.organization));
+          const role = escapeHtml(compactText(w.role));
+          const period = escapeHtml(compactText(w.period));
+          
+          let html = `<strong>${org}</strong>`;
+          if (role) html += `<br><span class="factSub">${role}</span>`;
+          if (period) html += `<br><span class="factSub">${period}</span>`;
+          
+          return {
+            text: [org, role, period].join(" "),
+            html: html,
+            url: w.sourceUrl
+          };
+        });
+
+      const education = (Array.isArray(profile.education) ? profile.education : [])
+        .map((e) => {
+          const inst = escapeHtml(compactText(e.institution));
+          const deg = escapeHtml(compactText(e.degree));
+          const yr = escapeHtml(compactText(e.year));
+          
+          let html = `<strong>${inst}</strong>`;
+          if (deg) html += `<br><span class="factSub">${deg}</span>`;
+          if (yr) html += `<br><span class="factSub">${yr}</span>`;
+          
+          return {
+            text: [inst, deg, yr].join(" "),
+            html: html,
+            url: e.sourceUrl
+          };
+        });
+
+      const awards = (Array.isArray(profile.awards) ? profile.awards : [])
+        .map((a) => ({
+          text: compactText([a.title, a.issuer, a.year].filter(Boolean).join(" - ")),
+          url: a.sourceUrl
+        }));
+
+      const socials = (Array.isArray(profile.socialLinks) ? profile.socialLinks : [])
+        .map((s) => ({
+          text: compactText([s.platform, s.url].filter(Boolean).join(": ")),
+          url: s.sourceUrl || s.url
+        }));
+
+      const websites = (Array.isArray(profile.websites) ? profile.websites : [])
+        .map((w) => ({
+          text: compactText(w.label || w.url),
+          url: w.url || w.sourceUrl
+        }));
+
+      return {
+        summary: compactText(data.summary || profile.headline || ""),
+        sports,
+        activities,
+        work,
+        education,
+        awards,
+        socials,
+        websites,
+      };
+    }
+
+    function renderSourcesList(items) {
+      const wrap = document.createElement("div");
+      wrap.className = "glanceSection";
+      const title = document.createElement("h4");
+      title.className = "glanceTitle";
+      title.textContent = "Sources";
+      wrap.appendChild(title);
+
+      const list = document.createElement("div");
+      list.className = "sourceList";
+      wrap.appendChild(list);
+
+      const uniqueItems = uniqueByKey(items, (item) => compactText(item.url).toLowerCase());
+      const initialCount = 5;
+      let expanded = false;
+
+      const renderRows = () => {
+        list.innerHTML = "";
+        const visible = expanded ? uniqueItems : uniqueItems.slice(0, initialCount);
+        for (const item of visible) {
+          const row = document.createElement("div");
+          row.className = "sourceRow";
+
+          const link = document.createElement("a");
+          link.href = item.url || "#";
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.className = "sourceTitleLink";
+          link.textContent = item.title || item.url || "Open source";
+
+          const meta = document.createElement("div");
+          meta.className = "resultMeta";
+          const query = item.query || "search";
+          const rank = Number.isFinite(item.rank) ? `#${item.rank}` : "#-";
+          meta.textContent = `${query} • ${rank}`;
+
+          row.appendChild(link);
+          row.appendChild(meta);
+          list.appendChild(row);
+        }
+      };
+
+      renderRows();
+
+      if (uniqueItems.length > initialCount) {
+        const moreBtn = document.createElement("button");
+        moreBtn.type = "button";
+        moreBtn.className = "moreBtn";
+        moreBtn.textContent = `More (${uniqueItems.length - initialCount})`;
+        moreBtn.addEventListener("click", () => {
+          expanded = !expanded;
+          moreBtn.textContent = expanded ? "Show less" : `More (${uniqueItems.length - initialCount})`;
+          renderRows();
+        });
+        wrap.appendChild(moreBtn);
+      }
+
+      return wrap;
+    }
+
+    function renderAiResults(record, cost, remainingCredits) {
+      currentAiRecord = record || null;
+      searchResults.innerHTML = "";
+
+      if (!record) {
+        searchHint.textContent = "No search data loaded yet.";
+        searchResults.hidden = true;
+        return;
+      }
+
+      const sourceData = record.source_data || {};
+      const items = flattenSourceResults(sourceData);
+
+      searchHint.textContent = `Stored results from ${formatTime(record.updated_at)}`;
+      
+      if (cost !== undefined && remainingCredits !== undefined && remainingCredits !== "Unlimited") {
+        searchHint.textContent += ` | Cost: ${cost} credits | Balance: ${remainingCredits} credits`;
+      }
+
+      const quick = projectGlanceData(record.search_results || {});
+      const glance = document.createElement("section");
+      glance.className = "quickGlance";
+
+      if (quick.summary) {
+        const summary = document.createElement("p");
+        summary.className = "quickSummary";
+        summary.textContent = quick.summary;
+        glance.appendChild(summary);
+      }
+
+      const sectionSpecs = [
+        ["Sports", quick.sports],
+        ["Activities", quick.activities],
+        ["Teams / Work", quick.work],
+        ["Education", quick.education],
+        ["Awards", quick.awards],
+        ["Social", quick.socials],
+        ["Websites", quick.websites],
+      ];
+
+      for (const [title, values] of sectionSpecs) {
+        const section = buildListSection(title, values);
+        if (section) glance.appendChild(section);
+      }
+
+      searchResults.appendChild(glance);
+      searchResults.hidden = false;
+    }
+
+    async function fetchAiRecordByName(personName) {
+      const { data, error } = await supabaseClient
+        .from(AI_RESEARCH_TABLE)
+        .select("id, person_name, search_results, source_data, created_at, updated_at")
+        .eq("person_name", personName)
+        .maybeSingle();
+      if (error) throw error;
+      return data || null;
+    }
+
+    async function runAiSearch(forceRefresh) {
+      if (!currentProfile) return;
+
+      searchBtn.disabled = true;
+      searchHint.textContent = "Searching with Google...";
+      
+      const statusUpdates = [
+        { time: 2000, text: "Looking at top results..." },
+        { time: 5000, text: "Gathering and reading pages..." },
+        { time: 8000, text: "Almost done... analyzing with AI..." },
+      ];
+      
+      let currentTimeout;
+      const setStatusDelay = (update) => {
+        return setTimeout(() => {
+          searchHint.textContent = update.text;
+        }, update.time);
+      };
+      
+      const timeouts = statusUpdates.map(setStatusDelay);
+
+      try {
+        if (!forceRefresh) {
+          const cachedRecord = await fetchAiRecordByName(currentProfile.name);
+          if (cachedRecord) {
+            renderAiResults(cachedRecord);
+            return;
+          }
+        }
+
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        currentSession = sessionData?.session || null;
+        if (!currentSession) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+
+        const token = currentSession.access_token;
+        const { data, error } = await supabaseClient.functions.invoke(AI_EDGE_FUNCTION, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: {
+            personName: currentProfile.name,
+            personClass: currentProfile.className,
+            forceRefresh: Boolean(forceRefresh),
+            scrapeDepth: parseInt(scrapeDepthSlider.value, 10)
+          }
+        });
+        if (error) throw error;
+
+        if (data && data.record) {
+          renderAiResults(data.record, data.cost, data.remainingCredits);
+        } else {
+          const fallback = await fetchAiRecordByName(currentProfile.name);
+          renderAiResults(fallback);
+        }
+      } catch (error) {
+        searchHint.textContent = error.message || "Search failed. Try again later.";
+      } finally {
+        timeouts.forEach(clearTimeout);
+        searchBtn.disabled = false;
+      }
+    }
+
       function jsonRow(label, data) {
         return `
           <details class="jsonBlock">
@@ -701,8 +1360,12 @@
         iservAvatarImg.src = profile.iservAvatar;
         iservAvatarImg.referrerPolicy = "no-referrer";
         iservAvatarImg.style.display = "block";
+        verifyIservLogin(profile);
       } else {
         iservAvatarImg.style.display = "none";
+        if (profile.iserv) {
+          verifyIservLogin(profile);
+        }
       }
       fullNameEl.textContent = profile.fullName;
       shortNameEl.textContent = profile.name;
@@ -714,10 +1377,13 @@
             ? "IServ"
             : "Unknown";
 
-      profileRows.innerHTML = [
+        profileRowsTop.innerHTML = [
           rowHtml("Emails", (profile.emails && profile.emails.length ? profile.emails.join(" • ") : profile.email || "No email available")),
         rowHtml("Role", profile.role),
-        rowHtml("Class", profile.className || "Not provided"),
+          rowHtml("Class", profile.className || "Not provided")
+        ].join("");
+
+        profileRowsBottom.innerHTML = [
         rowHtml("Extra", profile.extra || "No extra metadata"),
         rowHtml("Google Status", profile.google ? "Present" : "Missing"),
         rowHtml("IServ Status", profile.iserv ? "Present" : "Missing"),
@@ -727,6 +1393,42 @@
         loadingEl.hidden = true;
         profileCard.hidden = false;
     }
+
+      function openIservLoginModal() {
+        iservLoginModal.classList.add("open");
+        iservLoginModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeIservLoginModal() {
+        iservLoginModal.classList.remove("open");
+        iservLoginModal.setAttribute("aria-hidden", "true");
+      }
+
+      function verifyIservLogin(profile) {
+        if (!profile || !profile.iserv || !profile.id) return;
+        if (iservLoginPromptedForProfileId === profile.id) return;
+        iservLoginPromptedForProfileId = profile.id;
+
+        const testSrc = profile.iservAvatar || "";
+        if (!testSrc) {
+          openIservLoginModal();
+          return;
+        }
+
+        const probe = new Image();
+        probe.referrerPolicy = "no-referrer";
+        probe.onload = () => {
+          if (currentProfile && currentProfile.id === profile.id && iservLoginModal.classList.contains("open")) {
+            closeIservLoginModal();
+          }
+        };
+        probe.onerror = () => {
+          if (currentProfile && currentProfile.id === profile.id) {
+            openIservLoginModal();
+          }
+        };
+        probe.src = testSrc;
+      }
 
       function readCachedRows() {
         try {
@@ -778,6 +1480,27 @@
         imageModalImg.src = src;
         imageModal.classList.add("open");
         imageModal.setAttribute("aria-hidden", "false");
+      }
+
+      async function openCreditsModal() {
+        creditsModal.classList.add("open");
+        creditsModal.setAttribute("aria-hidden", "false");
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        if (isAdminSession(sessionData?.session)) {
+          document.getElementById("creditsModalBalance").textContent = "Unlimited (Admin)";
+          return;
+        }
+        if (sessionData?.session?.user) {
+          const { data } = await supabaseClient.from('accounts').select('credit_balance').eq('user_id', sessionData.session.user.id).single();
+          document.getElementById("creditsModalBalance").textContent = data ? `${data.credit_balance} credits` : "Could not load";
+        } else {
+          document.getElementById("creditsModalBalance").textContent = "Please sign in";
+        }
+      }
+      
+      function closeCreditsModal() {
+        creditsModal.classList.remove("open");
+        creditsModal.setAttribute("aria-hidden", "true");
       }
 
       async function downloadModalImage() {
@@ -835,6 +1558,8 @@
         if (!sessionData || !sessionData.session) {
           throw new Error("Not signed in. Open index page and sign in first.");
         }
+        currentSession = sessionData.session;
+
         const rawRows = await fetchAllRows();
         const profiles = rawRows.map(normalizeProfile).filter(Boolean);
 
@@ -845,6 +1570,8 @@
 
         renderProfile(selected);
         renderFamily(selected, profiles);
+        const existingRecord = await fetchAiRecordByName(selected.name);
+        renderAiResults(existingRecord);
       } catch (error) {
         loadingEl.hidden = false;
         profileCard.hidden = true;
@@ -866,7 +1593,39 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeImageModal();
+        closeCreditsModal();
       }
+    });
+
+    creditsInfoIcon.addEventListener("click", openCreditsModal);
+    closeCreditsModalBtn.addEventListener("click", closeCreditsModal);
+    creditsModal.addEventListener("click", (event) => {
+      if (event.target === creditsModal) {
+        closeCreditsModal();
+      }
+    });
+    closeIservLoginModalBtn.addEventListener("click", closeIservLoginModal);
+    iservLoginModal.addEventListener("click", (event) => {
+      if (event.target === iservLoginModal) {
+        closeIservLoginModal();
+      }
+    });
+
+    window.addEventListener("scroll", () => {
+      const opacity = Math.max(0, Math.min(1, 1 - (window.scrollY / 220)));
+      backToSearch.style.opacity = String(opacity);
+      backToSearch.style.transform = `translateY(${Math.max(-2, -window.scrollY / 120)}px)`;
+      backToSearch.style.pointerEvents = opacity <= 0.08 ? "none" : "auto";
+    }, { passive: true });
+
+    window.dispatchEvent(new Event("scroll"));
+
+    searchBtn.addEventListener("click", async () => {
+      const hasVisibleResultForCurrentProfile =
+        currentAiRecord &&
+        currentProfile &&
+        String(currentAiRecord.person_name || "").toLowerCase() === String(currentProfile.name || "").toLowerCase();
+      await runAiSearch(Boolean(hasVisibleResultForCurrentProfile));
     });
 
     init();
